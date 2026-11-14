@@ -1,0 +1,15 @@
+[Nn]ushell
+Nushell's
+[Ee]nv
+const
+[Bb]ool
+[Dd]atetime
+unparenthesized
+typecheck
+subexpressions
+positionals
+args
+nu_exec
+[Cc][Ss][Vv]
+[Jj][Ss][Oo][Nn]
+eval

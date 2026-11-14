@@ -7,6 +7,7 @@
     "author": { "name": "Zayn Ramdass", "email": "ramdasszayn@gmail.com" },
     "keywords": ["nushell", "nu", "shell", "idioms", "education"],
     "license": "MIT",
+    "experimental": { "evals": "tests" },
     "mcpServers": { "nushell": { "command": "bunx", "args": ["nushell-mcp@latest"] } },
     "lspServers": {
         "nushell": {
