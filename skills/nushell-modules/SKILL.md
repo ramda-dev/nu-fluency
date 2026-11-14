@@ -213,7 +213,7 @@ wall time: `timeit { ^nu --no-config-file -c 'use mymod; null' }`, minus a bare
 
 ## Modules with `nu_exec`
 
-When using the `mcp__nushell__nu_exec` tool, internally it wraps the pipeline
+When using the `nu_exec` tool, internally it wraps the pipeline
 by a `do {  }` call, writes it to a temporary script file, and invokes it as
 `nu <script> ...<options>`. This inadvertently inhibits scope introspection and
 any relative paths to the `cwd` in `use` calls will error.
