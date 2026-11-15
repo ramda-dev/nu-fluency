@@ -70,7 +70,7 @@ index = 8
       {
         synopsis = 'Run trigger round-trip tests',
         llm      = 'automation',
-        done     = false
+        done     = true
       },
       {
         synopsis = 'Run vale over SKILL.md prose',
