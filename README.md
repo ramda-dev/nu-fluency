@@ -95,7 +95,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 
 | Type | Count | Purpose |
 |---|---|---|
-| Skills | 10 | `/nushell-{idioms,records,env-scoping,strings,control-flow,modules}`, `/inspect-shape`, `/env-snapshot`, `/audit-pipeline`, `/command-help` |
+| Skills | 11 | `/nushell-{idioms,records,env-scoping,strings,control-flow,modules,performance}`, `/inspect-shape`, `/env-snapshot`, `/audit-pipeline`, `/command-help` |
 | Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` isn't installed (**experimental**) |
 | Hooks | 2 | Pre-`Bash` nudge toward nu equivalents; post-`nu_exec`/`nu_repl_write` hook that runs `nu-lint` on the executed code |
 | LSP | 1 | `nu --lsp` via `lspServers` in `.claude-plugin/plugin.json` |
@@ -130,6 +130,8 @@ hover info, and auto-fixes any time it edits a Nushell file.
 — `for`/`each`/`reduce`/`any`/`all`/`take while`, conditionals, `try/catch` vs `?`.
 - **`nushell-modules`**
 — `module`/`use`/`export def`/`export-env`/`main`.
+- **`nushell-performance`**
+— closure-entry cost model, profile-first workflow, `probe` kit (`scripts/probe.nu`).
 
 ### Hooks
 
