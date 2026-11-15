@@ -85,7 +85,7 @@ What follows from the tables:
   workload): `reduce` 36 ms, `for` with `mut` 33 ms. In the library case the same result restructured as two
   stateless passes took 4 ms against 117 for the loop (0.115.2-nightly).
 - Building a 1000-key record with `insert` in a fold costs 24-27 ms in either style; `each` to `{k v}` rows
-  then `transpose --header-row --as-record` costs 2.5 ms.
+  then `transpose --ignore-titles --header-row --as-record` costs 2.5 ms.
 - Finding an element 10% into a 1000-element list: `$x in $xs` 2 us, `for` with `break` 51 us, `any {}` 72 us.
 - 400 rows with 5 inner items each: a closure per row 2.6 ms, `flatten` then one `where` 1.4 ms, nested
   `for` 1.9 ms.
@@ -159,7 +159,7 @@ Try 1 to 5 in that order. 6 and 7 apply wherever `probe hot` points at them.
 
 1. **A builtin that takes no closure.** `in` / `not-in`, `math sum`, `str join`, `get <col>`, `select`,
    `reject`, `uniq`, `compact --empty`, `is-empty`, `group-by <col>`, `sort-by <col>`, `update <col> <value>`,
-   `transpose --header-row --as-record`, `format pattern` over a table, string commands fed a whole list.
+   `transpose --ignore-titles --header-row --as-record`, `format pattern` over a table, string commands fed a whole list.
    Among the newer ones: `join --anti` to drop rows with a match (0.25 ms against 2.0 for `where k not-in`,
    1000 rows by 500), `get ...$paths` for several cell paths (6 us against 30 for `each` over 20 paths), and
    `find --only-matching --regex` to extract matches (78 us against 107 for `parse --regex`). A builtin is not

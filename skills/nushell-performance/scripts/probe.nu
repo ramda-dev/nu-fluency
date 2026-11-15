@@ -30,7 +30,7 @@ const ALWAYS: list<string> = [
   tee
   interleave
 ]
-const MAYBE: list<string> = [default update upsert insert collect zip group-by sort-by]
+const MAYBE: list<string> = [default update upsert insert collect zip 'str replace' group-by sort-by]
 
 # Exact number of closure-command entries one run of `code` makes, by command.
 export def entries [code: closure]: nothing -> record<total: int, by: record, closure-or-value: record> {
@@ -100,8 +100,8 @@ export def hot [code: closure --top: int = 12]: nothing -> record<total: duratio
   {
     total: $total
     lines: (
-      $self | group-by {|r| $"($r.file | default inline | path basename):($r.line)" } --to-table
-      | each {|g| {line: $g.closure_0 self: ($g.items.self | math sum) rows: ($g.items | length) sample: ($g.items | sort-by self --reverse | first | get source | str trim | str substring 0..60)} }
+      $self | group-by {|r| $"($r.file | default inline):($r.line)" } --to-table
+      | each {|g| let at = $g.items | first; {line: $"($at.file | default inline | path basename):($at.line)" self: ($g.items.self | math sum) rows: ($g.items | length) sample: ($g.items | sort-by self --reverse | first | get source | str trim | str substring 0..60)} }
       | sort-by self --reverse | first $top | insert share {|r| $"($r.self / $total * 100 | math round)%" }
     )
     callees: (
