@@ -28,7 +28,7 @@ version = '3.0.0'
     [issue.vision.criteria]
       requirements = [
         'Round-trip trigger tests green.',
-        'markdown-toolkit-vale clean over all SKILL.md prose.',
+        'Vale clean over all SKILL.md prose.',
         'Versions coherent across corpus and manifests.',
         'Stable tag pushed with release; both manifests bumped atomically to converge cached installs.',
       ]
@@ -75,7 +75,7 @@ index = 8
       {
         synopsis = 'Run vale over SKILL.md prose',
         llm      = 'automation',
-        done     = false
+        done     = true
       },
       {
         synopsis = 'Sweep versions for coherence',
