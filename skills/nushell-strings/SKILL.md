@@ -1,14 +1,14 @@
 ---
 name: nushell-strings
 description: >
-  This skill should be used when manipulating strings in Nushell — parsing
-  structured text with `parse '{a} {b}'`, interpolating with `$"..."`,
-  splitting/joining/replacing, converting between strings and structured
-  formats (json/csv/yaml/toml), or any string operation that bash would
-  handle with sed/awk/grep. Trigger phrases: "parse string", "split", "join",
-  "str replace", "string interpolation", "regex", "from csv", "from json
-  string".
-version: 0.1.0
+  Load before writing or answering anything about text handling in Nushell,
+  including a short question: `parse '{a} {b}'` templates and
+  `parse --regex`, `$"..."` interpolation, splitting, joining, replacing,
+  and converting between strings and json/csv/yaml/toml, in place of the
+  sed/awk/grep habits a quick answer falls back on. Trigger phrases:
+  "parse string", "parse lines", "split", "join", "str replace",
+  "string interpolation", "regex", "from csv", "from json string".
+version: 0.1.1
 user-invocable: false
 ---
 

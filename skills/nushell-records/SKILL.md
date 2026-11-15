@@ -1,14 +1,16 @@
 ---
 name: nushell-records
 description: >
-  This skill should be used when writing or transforming Nushell records
-  (key-value structures) or tables — including `$env` manipulation, record
-  literals, column projection with `select`/`reject`, building records from
-  iterables, or any time keys/values/columns are being added, removed,
-  filtered, or restructured. Trigger phrases: "record", "table",
-  "key/value", "select column", "build a record", "filter columns",
-  "transform $env".
-version: 0.2.0
+  Load before writing or answering anything about Nushell records or tables,
+  including a short question: it covers the current record commands
+  (`record each`, `record where`) and the conversions (`into record`,
+  `transpose`) that answers from memory get wrong. Applies to renaming,
+  adding, dropping, or filtering keys and columns, null fields, record
+  literals, `select`/`reject`, building records from lists, and `$env`
+  manipulation. Trigger phrases: "record", "table", "key/value",
+  "rename keys", "drop fields", "select column", "build a record",
+  "filter columns", "transform $env".
+version: 0.2.1
 user-invocable: false
 ---
 
