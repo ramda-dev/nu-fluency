@@ -7,8 +7,30 @@
 #   probe compare {|| <old> } {|| <new> } equality gate, then a balanced timing with a noise estimate
 #   probe calibrate                      the entry-cost table for the running nu (re-run after an upgrade)
 
-const ALWAYS: list<string> = [each par-each where any all reduce items filter 'take while' 'take until' 'skip while' 'skip until' 'each while']
-const MAYBE: list<string> = [default update upsert group-by sort-by]
+const ALWAYS: list<string> = [
+  each
+  par-each
+  where
+  any
+  all
+  reduce
+  items
+  'take while'
+  'take until'
+  'skip while'
+  'skip until'
+  'each while'
+  'chunk-by'
+  generate
+  'record each'
+  'record where'
+  'record walk'
+  'record apply'
+  'update cells'
+  tee
+  interleave
+]
+const MAYBE: list<string> = [default update upsert insert collect zip group-by sort-by]
 
 # Exact number of closure-command entries one run of `code` makes, by command.
 export def entries [code: closure]: nothing -> record<total: int, by: record, closure-or-value: record> {
@@ -121,6 +143,14 @@ export def calibrate [--rounds: int = 3000]: nothing -> table<form: string, us: 
     ['reduce' {|| $xs | reduce --fold 0 {|x a| $a + $x } }]
     ['items' {|| $r | items {|k v| $v } }]
     ['take while' {|| $xs | take while {|x| $x == 1 } }]
+    ['take while (row condition)' {|| $xs | take while $it == 1 }]
+    ['all' {|| $xs | all {|x| $x == 1 } }]
+    ['chunk-by' {|| $xs | chunk-by {|x| $x } }]
+    ['generate (one step)' {|| generate {|i| if $i < 1 { {out: $i next: ($i + 1)} } } 0 }]
+    ['record each' {|| $r | record each {|k v| {$k: $v} } }]
+    ['record where (row condition)' {|| $r | record where value == 1 }]
+    ['record where {closure}' {|| $r | record where {|k v| $v == 1 } }]
+    ['update cells' {|| $t | update cells {|v| $v } }]
     ['collect {closure}' {|| $xs | collect {|v| $v } }]
     ['update col {closure}' {|| $r | update a {|row| $row.a + 1 } }]
     ['update col value' {|| $r | update a 2 }]
