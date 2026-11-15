@@ -1,4 +1,6 @@
-# Re-measures the figures in skills/nushell-performance/SKILL.md and prints them as one NUON record.
+# Re-measures the figures in skills/nushell-performance/SKILL.md, plus the performance claims in the
+# nushell-records and nushell-control-flow skills and the closure forms added in nu 0.116 and 0.117,
+# and prints them as one NUON record.
 # Run from the repository root: nu --no-config-file bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
@@ -6,9 +8,9 @@ use ../../skills/nushell-performance/scripts/probe.nu
 
 # ——— helpers ——————————————————————————————————————————————————————————————————
 
-# Median milliseconds of one run (probe time with tunable rounds).
-def t [code: closure --rounds: int = 20]: nothing -> float {
-  probe time $code --rounds $rounds --passes 5
+# Median milliseconds of one run (probe time with tunable rounds and passes).
+def t [code: closure --rounds: int = 20 --passes: int = 5]: nothing -> float {
+  probe time $code --rounds $rounds --passes $passes
 }
 
 # Microseconds for one call, the same harness as `probe calibrate`.
@@ -151,6 +153,111 @@ let par_each = section par_each {
   }
 }
 
+let entry_extra_us = section entry_extra_us {
+  let xs = [1]
+  let r = {a: 1}
+  let nested = {a: {b: 1}}
+  {
+    'record walk': (us {|| $nested | record walk {|path v| $v } })
+    'record apply': (us {|| $r | record apply {a: {|v| $v } } })
+    'update cells --recursive': (us {|| [[a]; [[1]]] | update cells --recursive {|v| $v } })
+    'str replace --regex {closure}': (us {|| 'a.b' | str replace --regex '\.' {|| '-' } })
+    'zip {closure}': (us {|| $xs | zip {|| [2] } })
+    'zip list': (us {|| $xs | zip [2] })
+    'interleave': (us {|| interleave { [1] } })
+    'tee': (us {|| $xs | tee { ignore } })
+    'each while': (us {|| $xs | each while {|x| $x } })
+    'take until (row condition)': (us {|| $xs | take until $it == 2 })
+    'skip while (row condition)': (us {|| $xs | skip while $it == 2 })
+    'skip until {closure}': (us {|| $xs | skip until {|x| $x == 1 } })
+    'group-by {closure} --to-table': (us {|| [{a: 1}] | group-by {|row| $row.a } --to-table })
+    'closure command inside a closure (each in each)': (us {|| $xs | each {|x| [$x] | each {|y| $y } } })
+  }
+}
+
+# Per-element cost of the forms 0.117 sped up inside loops and closures (release PR 19394), against the loop.
+let nested_per_element_us = section nested_per_element_us {
+  {
+    'each {|x| [$x] } (baseline)': (slope $ints {|| each {|x| [$x] } | ignore })
+    'each {|x| [$x] | where $it > 0 }': (slope $ints {|| each {|x| [$x] | where $it > 0 } | ignore })
+    'for, [$x] | where $it > 0': (slope $ints {|| let items = $in; for x in $items { [$x] | where $it > 0 } })
+    'each {|x| [$x] | each {|y| $y + 1 } }': (slope $ints {|| each {|x| [$x] | each {|y| $y + 1 } } | ignore })
+    'for, [$x] | each {|y| $y + 1 }': (slope $ints {|| let items = $in; for x in $items { [$x] | each {|y| $y + 1 } } })
+    'each {|x| $x | into string }': (slope $ints {|| each {|x| $x | into string } | ignore })
+    'for, $x | into string': (slope $ints {|| let items = $in; for x in $items { $x | into string } })
+    'each {|r| $r | update n {|row| $row.n + 1 } }': (slope $recs {|| each {|r| $r | update n {|row| $row.n + 1 } } | ignore })
+    'update n {|row| $row.n + 1 } (table)': (slope $recs {|| update n {|row| $row.n + 1 } | ignore })
+    'take while $it < 1000000 (row condition)': (slope $ints {|| take while $it < 1000000 | ignore })
+    'take while {|x| $x < 1000000 }': (slope $ints {|| take while {|x| $x < 1000000 } | ignore })
+    'all $it > 0 (row condition)': (slope $ints {|| all $it > 0 })
+    'all {|x| $x > 0 }': (slope $ints {|| all {|x| $x > 0 } })
+  }
+}
+
+# nushell-records claims: 5,000 fields.
+let records_ms = section records_ms {
+  let rec = 1..5000 | each {|i| [$'k($i)' $i] } | into record
+  let keys = $rec | columns
+  {
+    fields: ($rec | columns | length)
+    'map: record each': (t {|| $rec | record each {|k v| {$k: ($v * 2)} } } --rounds 10)
+    'map: items | into record': (t {|| $rec | items {|k v| [$k ($v * 2)] } | into record } --rounds 10)
+    'map: transpose | update | transpose back': (t {|| $rec | transpose k v | update v {|row| $row.v * 2 } | transpose --ignore-titles --header-row --as-record } --rounds 10)
+    'filter: record where value > 2500': (t {|| $rec | record where value > 2500 } --rounds 10)
+    'filter: record where {closure}': (t {|| $rec | record where {|k v| $v > 2500 } } --rounds 10)
+    'filter: items | compact | into record': (t {|| $rec | items {|k v| if $v > 2500 { [$k $v] } } | compact | into record } --rounds 10)
+    'build: reduce --fold {} upsert': (t {|| $keys | reduce --fold {} {|k acc| $acc | upsert $k 1 } } --rounds 2 --passes 3)
+    'build: items | into record': (t {|| $rec | items {|k v| [$k 1] } | into record } --rounds 10)
+    'build: each [k v] | into record': (t {|| $keys | each {|k| [$k 1] } | into record } --rounds 10)
+  }
+}
+
+# nushell-control-flow claim: building a list with reduce is quadratic.
+let control_flow_ms = section control_flow_ms {
+  let big = do $ints 5000
+  {
+    'reduce --fold [] append, 5000': (t {|| $big | reduce --fold [] {|x acc| $acc | append [$x $x] } } --rounds 1 --passes 3)
+    'each --flatten, 5000': (t {|| $big | each --flatten {|x| [$x $x] } } --rounds 10)
+  }
+}
+
+# Closure-free options that 0.116/0.117 added or changed, against the closure forms they replace.
+let closure_free_ms = section closure_free_ms {
+  let left = 1..1000 | each {|i| {k: $i} }
+  let right = 1..500 | each {|i| {k: ($i * 2)} }
+  let right_keys = $right.k
+  let dupes = 1..2000 | each {|i| {g: ($i mod 100) i: $i} }
+  let wide = 1..50 | each {|i| [$'c($i)' $i] } | into record
+  let paths = 1..20 | each {|i| [$'c($i)'] | into cell-path }
+  let text = 1..200 | each {|i| $'id=($i);' } | str join
+  {
+    'anti-join 1000 by 500: join --anti': (t {|| $left | join --anti $right k } --rounds 20)
+    'anti-join 1000 by 500: where k not-in': (t {|| $left | where k not-in $right_keys } --rounds 20)
+    'last per group 2000: uniq-by --keep-last': (t {|| $dupes | uniq-by g --keep-last } --rounds 20)
+    'last per group 2000: reverse | uniq-by | reverse': (t {|| $dupes | reverse | uniq-by g | reverse } --rounds 20)
+    'last per group 2000: group-by | each last': (t {|| $dupes | group-by g --to-table | each {|grp| $grp.items | last } } --rounds 20)
+    '20 paths: get ...$paths (us)': ((t {|| $wide | get ...$paths } --rounds 500) * 1000)
+    '20 paths: each get (us)': ((t {|| $paths | each {|p| $wide | get $p } } --rounds 500) * 1000)
+    'regex matches: find --only-matching (us)': ((t {|| $text | find --only-matching --regex '\d+' } --rounds 200) * 1000)
+    'regex matches: parse --regex (us)': ((t {|| $text | parse --regex '(?<n>\d+)' | get n } --rounds 200) * 1000)
+  }
+}
+
+# The skill times par-each from fresh processes; this repeats the 1741-element case in one process to see
+# whether the unordered form's slowdown on the XPS run is stable or a one-off.
+let par_each_repeat = section par_each_repeat {
+  let s = do $ints 1741
+  1..3 | each {|round|
+    {
+      round: $round
+      each: (t {|| $s | each {|x| do $fmt $x } } --rounds 5)
+      par_each_keep_order: (t {|| $s | par-each --keep-order {|x| do $fmt $x } } --rounds 5)
+      par_each: (t {|| $s | par-each {|x| do $fmt $x } } --rounds 5)
+      'par_each --threads 4': (t {|| $s | par-each --threads 4 {|x| do $fmt $x } } --rounds 5)
+    }
+  }
+}
+
 let profiler = section profiler {
   let rows = 1..400 | each {|i| {id: $i items: [1 2 3 4 5]} }
   let work = {|| $rows | each {|r| $r.items | where $it == 3 } | flatten }
@@ -200,6 +307,12 @@ let env_plus_90 = section env_plus_90 {
   builtins: $builtins
   worked_ms: $worked_ms
   par_each: $par_each
+  entry_extra_us: $entry_extra_us
+  nested_per_element_us: $nested_per_element_us
+  records_ms: $records_ms
+  control_flow_ms: $control_flow_ms
+  closure_free_ms: $closure_free_ms
+  par_each_repeat: $par_each_repeat
   profiler: $profiler
   pitfalls: $pitfalls
   env_plus_90: $env_plus_90
