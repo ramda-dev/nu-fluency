@@ -23,7 +23,7 @@ version = '3.0.0'
         'Description follows the house "This skill should be used when ... Trigger phrases:" form.',
       ]
       constraints  = [
-        'Measured figures are carried as written; re-measuring on the corpus floor is a separate decision.',
+        'Figures are re-measured on nu 0.117.1-nightly on the reference laptop; library cases keep their 0.115.2-nightly figures and say so.',
       ]
 
     [issue.vision.landscape]
@@ -32,14 +32,14 @@ version = '3.0.0'
           type            = 'brownfield',
           synopsis        = 'Skill and probe kit written in a nu-lib session, outside the plugin.',
           reference       = 'SKILL.md attachment and probe.nu source on the GitHub issue.',
-          incompatibility = 'Figures measured on 0.115.2-nightly; the corpus floor is 0.117.'
+          incompatibility = 'Figures measured on 0.115.2-nightly; the corpus floor is 0.117, where closure entry costs about a seventh as much.'
         },
       ]
 
     [issue.vision.scope]
       excluded = [
         {
-          item     = 'Re-measuring or rewriting the cost-model figures',
+          item     = 'Re-running the library case studies on 0.117',
           deferred = false
         },
       ]
@@ -75,11 +75,26 @@ version = '3.0.0'
   [tasks.2]
     id        = 'reverify-on-floor'
     target    = 'Cost model re-checked against nu 0.117.'
-    completed = false
+    completed = 2026-11-15
     subtasks  = [
       {
         synopsis = 'Decide whether to re-measure the figures on 0.117',
         llm      = 'augmentation',
-        done     = false
+        done     = true
+      },
+      {
+        synopsis = 'Cover 0.116 and 0.117 forms in the runner',
+        llm      = 'automation',
+        done     = true
+      },
+      {
+        synopsis = 'Update the skill from the laptop run',
+        llm      = 'automation',
+        done     = true
+      },
+      {
+        synopsis = 'Update records and control-flow figures',
+        llm      = 'automation',
+        done     = true
       },
     ]
