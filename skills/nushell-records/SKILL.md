@@ -66,7 +66,7 @@ $env | record where key starts-with NU_
 {a: 1, b: 2} | record each {|k v| {$k: ($v * 2)} }                         # → {a: 2, b: 4}
 ```
 
-They are the fastest options by a wide margin (measured on 5,000 fields: `record each` 7.7 ms against 54 ms for `items … | into record`; `record where` 5.4 ms against 16.2 ms for `items … | compact | into record`). Never build a record with `reduce --fold {} { … upsert … }`: every step copies the accumulator, so it is quadratic (625 ms against 24 ms for the `items` form at 5,000 fields).
+They are the fastest options by a wide margin (measured on 5,000 fields, nu 0.117.1-nightly: `record each` 5.0 ms against 28 ms for `items … | into record` and 51 ms through `transpose`; `record where` 3.1 ms with a closure and 4.2 ms with a row condition, against 12.5 ms for `items … | compact | into record`). Never build a record with `reduce --fold {} { … upsert … }`: every step copies the accumulator, so it is quadratic (555 ms against 27 ms for the `items` form at 5,000 fields).
 
 `items {|k v| … }` remains the tool when the result is not a record (printing, collecting a list), and `items {…} | compact | into record` is the fallback on older nu.
 

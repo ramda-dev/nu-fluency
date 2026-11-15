@@ -39,8 +39,8 @@ Predicates are row conditions, not closures: `where name =~ $re`, `take until na
 
 ### Cost
 
-- **`reduce --fold` that builds a list or record is quadratic**: every step copies the accumulator. At 5,000 items, `reduce --fold [] { … append … }` took about a second against 2.5 ms for `each --flatten`. Fold only to a scalar, and prefer a builtin (`math sum`, `str join`) when one exists.
-- **`par-each` costs about 1 ms per call before any work.** It only pays off when each item does slow work (I/O, an external program) and there are many items; trivial per-item work is faster with `each` up to thousands of items. Never `par-each` writes to shared state (files, SQLite, `$env`).
+- **`reduce --fold` that builds a list or record is quadratic**: every step copies the accumulator. At 5,000 items, `reduce --fold [] { … append … }` took about a second against 3.9 ms for `each --flatten` (nu 0.117.1-nightly). Fold only to a scalar, and prefer a builtin (`math sum`, `str join`) when one exists.
+- **`par-each` costs just under 1 ms per call before any work** (0.83 ms on nu 0.117.1-nightly). It only pays off when each item does slow work (I/O, an external program, a heavy body) and there are many items; trivial per-item work is faster with `each` until well over a thousand items. Never `par-each` writes to shared state (files, SQLite, `$env`).
 - **`each --flatten`** when each iteration yields a list (same cost as `each | flatten`, reads better).
 
 ## `reduce` parameter order
