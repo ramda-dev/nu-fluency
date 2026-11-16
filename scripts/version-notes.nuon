@@ -1,0 +1,92 @@
+# Version notes for the nu-fluency skills: read by scripts/version-notes.nu.
+#
+# kind: option      behavior that depends on an experimental option. `option.enabled`
+#                   is the setting the note warns about; the note applies only when
+#                   the running nu has that option and it is set that way.
+# kind: diagnostic  an unresolved Nushell bug. `since` is the oldest version that
+#                   reproduces it (0.114.1 was the oldest checked), `reproduced` the
+#                   newest, `until` the first fixed version once known (null: open).
+#
+# Prose is written for a skill reader: `symptom` says what goes wrong, `workaround`
+# what to write instead. After editing, regenerate the reference table with
+# `nu --no-config-file scripts/version-notes.nu render --write`.
+[
+  {
+    id: pipefail-off
+    kind: option
+    skills: [nushell-idioms nushell-control-flow]
+    option: {name: pipefail enabled: false}
+    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not stop the pipeline or reach `catch`; only the last command decides the outcome'
+    workaround: 'capture the external with `complete` and test its `exit_code`'
+    repro: 'try { ^false | lines | length; "no error" } catch { "error" }'
+  }
+  {
+    id: runtime-annotations-off
+    kind: option
+    skills: [nushell-idioms]
+    option: {name: enforce-runtime-annotations enabled: false}
+    symptom: 'the pipeline form `… | let x: T` does not check the annotation, so a value of another type binds silently'
+    workaround: 'use the statement form `let x: T = …`, which is checked at parse time, or test the value with `describe`'
+    repro: "'x' | let y: int; $y"
+  }
+  {
+    id: hide-env-after-env-call
+    kind: diagnostic
+    skills: [nushell-env-scoping nushell-idioms]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: '`hide-env` does nothing once a `do --env` or `def --env` call has run earlier in the same block: the variable stays set'
+    workaround: 'run externals that must not see a variable under `with-env {VAR: null}` or `env -i`, and bind the value before any `--env` call'
+    repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
+    upstream: null
+  }
+  {
+    id: try-escapes-under-ignore
+    kind: diagnostic
+    skills: [nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "`try`/`catch` inside a command does not catch when the command's output is piped to `ignore`: the error escapes"
+    workaround: "bind the result (`let _ = f`), or end the command's body with `null`"
+    repro: 'def f [] { try { error make {msg: inner} } catch { "caught" } }; f | ignore'
+    upstream: null
+  }
+  {
+    id: later-statement-in
+    kind: diagnostic
+    skills: [nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but the body's `$in` is empty"
+    workaround: 'bind the input first (`let xs = $in`), or write `$in | if ($in | …) { … }`'
+    repro: '[1 2] | do { let y = 3; if ($in | is-empty) { "e" } else { $in | length } }'
+    upstream: null
+  }
+  {
+    id: par-each-unordered-slower
+    kind: diagnostic
+    skills: [nushell-performance]
+    since: '0.114.1'
+    reproduced: '0.117.1-nightly'
+    until: null
+    symptom: 'unordered `par-each` runs slower than `par-each --keep-order` on the same input, and can be slower than plain `each`'
+    workaround: 'pass `--keep-order` even when order does not matter'
+    repro: 'let xs = 1..1741 | each { $in }; [(timeit { $xs | par-each { $in * 2 } }) (timeit { $xs | par-each --keep-order { $in * 2 } })]'
+    upstream: null
+  }
+  {
+    id: bench-writes-escapes
+    kind: diagnostic
+    skills: [nushell-performance]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: '`std/bench` writes terminal escape codes into its output, so the result is not clean structured data'
+    workaround: "time with `timeit` in a loop, or the probe kit's `probe time`, when the numbers feed further code"
+    repro: 'use std/bench; bench { 1 } --rounds 5 | to nuon'
+    upstream: null
+  }
+]

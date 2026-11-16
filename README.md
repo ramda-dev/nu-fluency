@@ -133,6 +133,16 @@ hover info, and auto-fixes any time it edits a Nushell file.
 - **`nushell-performance`**
 — closure-entry cost model, profile-first workflow, `probe` kit (`scripts/probe.nu`).
 
+### Version notes
+
+[`scripts/version-notes.nuon`](scripts/version-notes.nuon) lists known Nushell bugs
+and behavior that depends on an experimental option. The idioms, control-flow,
+env-scoping and performance skills run `scripts/version-notes.nu` when they load
+and show only the notes that apply to the installed `nu`; the full table is
+[`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
+After editing the data, run `nu --no-config-file scripts/version-notes.nu render --write`
+(`check` fails when the table is stale).
+
 ### Hooks
 
 Pre-tool-use hook on `Bash` calls.
