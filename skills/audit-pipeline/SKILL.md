@@ -1,9 +1,9 @@
 ---
 name: audit-pipeline
-description: Generate diagnostics from a Nushell code snippet by executing `nu-lint` if available, otherwise uses an experimental agent as fallback. Use when debugging any Nushell code, after authoring any Nushell code, before running the `nu_exec` or `nu_repl` MCP tools, or when the user mentions "Nushell diagnostics", "nu-lint", "Nushell linter", or "generate Nushell diagnostics".
+description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
 arguments: [expression]
 argument-hint: [<expression>, "[--read-only]"]
-allowed-tools: ["Bash(*)", "Task(*)", "Read(*)"]
+allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Task(*)", "Read(*)"]
 shell: bash
 ---
 
@@ -15,13 +15,13 @@ hook.
 
 ## Environment
 
-- Nushell version: !`nu --version`
-- Nu-Lint native installation path: !`which nu-lint || true`
-- Nu-Lint WSL installation path: !`wsl.exe --exec which nu-lint || true`
+- Nushell version: !`nu --version 2>/dev/null || echo 'not found'`
+- Nu-Lint native installation path: !`which nu-lint 2>/dev/null || echo 'not found'`
+- Nu-Lint WSL installation path: !`wsl.exe --exec which nu-lint 2>/dev/null || echo 'not found'`
 
-If the native Nu-Lint installation path is not empty, follow the standard [procedure](#procedure).
+If the native Nu-Lint installation path is a path (not `not found`), follow the standard [procedure](#procedure).
 
-Else, if the WSL installation path is not empty, then
+Else, if the WSL installation path is a path, then
 follow the standard [procedure](#procedure) with the entire command call wrapped
 with `wsl.exe` to ensure the binary is on PATH.
 
@@ -29,15 +29,15 @@ Else, follow the [fallback](#fallback) instructions.
 
 ## Procedure
 
-1. Run the linter with the pipeline.
+1. Run the linter with the pipeline. Call it by name, `nu-lint`, as written
+   below rather than by the path found above, so the skill's permission rule
+   covers it.
 
    ```bash
-   CONFIG="${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml"
    # quoted heredoc (<<'PIPELINE') stops bash from expanding the substituted pipeline as shell syntax
-   echo "$(cat <<'PIPELINE'
+   nu-lint --stdin --format compact --config "${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml" <<'PIPELINE'
    $expression
    PIPELINE
-   )" | nu-lint --stdin --format compact --config "$CONFIG"
    ```
 
 2. Render the diagnostics directly, one per line, with line/column references.

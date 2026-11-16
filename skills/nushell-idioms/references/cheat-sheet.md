@@ -2,7 +2,7 @@
 
 Pull when you need syntax for a specific operation.
 
-For anti-patterns and recalibration, see the [skill](`../SKILL.md`).
+For anti-patterns and recalibration, see the [skill](../SKILL.md).
 
 ## Data Conversion
 
@@ -56,7 +56,7 @@ For anti-patterns and recalibration, see the [skill](`../SKILL.md`).
 '{"x": 1}' | from json           # {x: 1}
 
 # yaml
-[a b c] | to yaml                # "- 'a'\n- 'b'\n- 'c'\n"
+[a b c] | to yaml                # "- a\n- b\n- c\n"
 "- a\n- b\n- c" | from yaml      # [a b c]
 
 # csv (from csv is type-inferring on numeric columns)
@@ -98,8 +98,8 @@ let point: record<x: int, y: int> = {x: 1 y: 2}        # valid
 let point: record<x: int, y: int> = {x: foo y: bar}    # invalid
 # typecheck does not run on data outside of type definition
 let point: record<x: int, y: int> = {a: foo x: 3 y: 9} # valid
-# typecheck runs on all defined keys for non-empty records
-let point: record<x: int, y: int> = {}                 # valid
+# typecheck runs on all defined keys, so an empty record fails too
+let point: record<x: int, y: int> = {}                 # invalid
 let point: record<x: int, y: int> = {x: 1}             # invalid
 let point: record<x: int, y: int> = {a: foo b: bar}    # invalid
 ```
@@ -168,9 +168,8 @@ let lines: list = [foo 1sec {x: 1} 30 null]            # valid
 # specifying types enables parser typechecking
 let lines: list<string> = [foo bar]                    # valid
 let lines: list<string> = [1 2 3 4]                    # invalid
-# type declaration may be expanded by coercion
-let lines: list<string> = [foo 1 bar 2]                # valid
-$lines | describe # -> list<oneof<string, int>>
+# a mixed list does not satisfy a typed list
+let lines: list<string> = [foo 1 bar 2]                # invalid
 ```
 
 ### Operations and Accessing
@@ -577,9 +576,9 @@ export const VERSION = "1.0"
 # --- caller: namespaced import ---
 use greetings.nu
 greetings              # "greetings and salutations"   (calls main)
-greetings "alice"      # forwards "alice" to main as a positional arg
+greetings hello "world"  # "hi world"   (other exports through the namespace)
 
-# subcommands and exported constants require selective or wildcard import
+# selective and wildcard imports bring names into scope without the prefix
 use greetings.nu hello                 # selective
 hello "world"                          # "hi world"
 
@@ -602,7 +601,7 @@ use mymod double
 double 21                              # 42
 ```
 
-**Dispatch rule**: when a module exports `main`, the bare namespace name invokes `main` and any positional args go to it. Subcommands are not reachable via `namespace subcommand` syntax in that case — use selective (`use foo.nu hello`) or wildcard (`use foo.nu *`) imports. A module **without** `main` does support `namespace subcommand args` dispatch directly.
+**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules`](../../nushell-modules/SKILL.md) has the full matrix.
 
 ## Useful Flags and Forms
 

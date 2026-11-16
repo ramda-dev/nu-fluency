@@ -9,18 +9,6 @@ version: 0.1.1
 
 # Inspect Shape
 
-## Environment
-
-```!
-nu --version
-```
-
-## Usage (`inspect`)
-
-```!
-nu --no-std-lib --no-config-file --commands "inspect --help"
-```
-
 ## Procedure
 
 Call `nu_exec` with `pipeline` set to `<expression> | inspect | ignore`

@@ -1,15 +1,14 @@
 ---
 name: nushell-strings
 description: >
-  This skill should be used when manipulating strings in Nushell — parsing
-  structured text with `parse '{a} {b}'`, interpolating with `$"..."`,
-  splitting/joining/replacing, converting between strings and structured
-  formats (json/csv/yaml/toml), or any string operation that bash would
-  handle with sed/awk/grep. Trigger phrases: "parse string", "split", "join",
-  "str replace", "string interpolation", "regex", "from csv", "from json
-  string".
-version: 0.1.0
+  Parses and builds strings the Nushell way: `parse '{a} {b}'` into tables,
+  the `str` commands, `from`/`to` json, csv, yaml and toml, `$"…"`
+  interpolation, splitting, joining and regex. Use for any string work that
+  bash would do with sed, awk, grep, cut or printf.
 user-invocable: false
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.1.1
 ---
 
 # Nushell Strings
@@ -26,7 +25,7 @@ The strongest single tool. Takes a template with named captures and returns a **
 
 ### 2. The `str` namespace
 
-Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Tab-complete `str ` to discover the full set; 25 subcommands as of nu 0.117, two of them (`upcase`, `downcase`) deprecated.
+Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Tab-complete `str ` to discover the full set. `str upcase` and `str downcase` are deprecated; write `str uppercase` and `str lowercase`.
 
 ### 3. The `from <format>` family
 
@@ -56,5 +55,4 @@ Coming from bash, the instinct is "transform text → transform text → final t
 
 - **`echo`** in nu prints a list of values, not a string. Use `print` for stdout-side-effect, `$"…"` for interpolation.
 - **`'…'` (plain single-quoted) is literal** — no escapes interpreted. For interpolation that still preserves backslashes, use the `$` prefix: `$'…'`. Plain double-quoted `"…"` interprets escapes; `$"…"` adds interpolation on top.
-- **`split row` vs `split column`**: row → list of strings; column → record with auto-named columns. Pick by what you want next.
 - **`parse` returns a table**, not a record. Use `parse … | first | …` if you expect one match.

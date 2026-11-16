@@ -1,13 +1,27 @@
 ---
 name: nushell-idioms
-description: Educates and reinforces idiomatic Nushell patterns as a knowledge base to avoid writing bash-translated patterns in Nushell code. Use when writing, reading, debugging, or executing Nushell code (e.g. a `.nu` script, a `.nuon` file, the `nu_exec`/`nu_repl` MCP tools) or when the user mentions 'nushell', 'nu script', 'nu pipeline', 'writing nu', 'calling nu_exec', 'convert this to nu'.
-compatibility: { nu: '>=0.117.0' }
-version: 0.2.0
+description: >
+  Idiomatic Nushell instead of bash translated into nu: structured data,
+  pipelines over `let` chains, bash-to-nu equivalents and the common traps.
+  Use whenever writing, reading, debugging or running Nushell (`.nu` and
+  `.nuon` files, the `nu_exec`/`nu_repl` tools) or converting shell code to
+  nu.
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" *)
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Idioms
 
-Nushell is a **structural-data-first** shell.
+Nushell is a **structural-data-first** shell: parse text into records, lists and tables once, transform them
+with pipelines, and render text only at the end. The biggest source of mistakes is reaching for bash patterns,
+whose text streams dominate training data and cloud intuition about nu. This skill names the common traps and
+their idiomatic replacements.
+
+Known bugs and option-dependent behavior for the running nu, if any:
+
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms 2>/dev/null || true`
 
 Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 
@@ -17,13 +31,6 @@ Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 - `filesize` -> byte-measurement unit (uses suffix; e.g. `3GB`)
 - `duration` -> timespan-measurement unit (uses suffix; e.g. `2sec`)
 - `datetime` -> temporal-measurement unit (run `date --help` in nu for more info)
-
-The biggest source of mistakes when writing nu is reaching for bash patterns.
-
-- Bash uses text-streaming which can cloud intuition about Nushell.
-- Bash dominates training data and surfaces for shell-related operations.
-
-This skill names many common traps and their idiomatic replacements.
 
 ## Self-Prompted Reflection
 
@@ -41,8 +48,7 @@ Two `let` forms exist and behave differently:
 - **Statement form** `let name: TYPE = <expr>` is parse-time.
 Enforced type annotations (record/string mismatches reject).
 - **Pipeline form** `<pipeline> | let name` is runtime.
-Enforcement of type annotations in this form is subject to the configured
-experimental options and Nushell version (>=0.114.0 enforces by default).
+Its type annotation is checked when the value arrives.
 
 ## Bash to Nushell Equivalents
 
@@ -51,7 +57,7 @@ experimental options and Nushell version (>=0.114.0 enforces by default).
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
 | `grep pattern file` | `open file \| where $it =~ "pattern"` (or `find "pattern"`) |
-| `awk '{print $2}'` | `split column " " \| get column2` |
+| `awk '{print $2}'` | `split column " " \| get column1` (columns count from `column0`) |
 | `sed 's/a/b/'` | `str replace 'a' 'b'` |
 | `cat f \| head -n 5` | `open f \| first 5` |
 | `wc -l < file` | `open file \| lines \| length` |
@@ -307,25 +313,16 @@ the conceptual reference.
 - Framework-free guidance for testing Nushell code: assertions, child
 interpreters, sandboxed environments, and why tests are called by literal name.
 
-## Language Protocols: Nushell LSP and Nu-Lint
+[diagnostics](./references/nushell-diagnostics.md)
 
-The bundled LSP uses the native `nu --lsp` server,
-which provides realtime diagnostics when working on Nushell files.
+- Known Nushell bugs the skills work around, each with a repro, a workaround
+and the versions it was reproduced on, plus behavior that depends on an
+experimental option. Read when nu behaves against what a skill says.
 
-When available, the `nu-lint` command provides much richer diagnostics,
-and is what the plugin's post-`nu_exec` hook calls when checking a pipeline.
+[tooling](./references/tooling.md)
 
-It's a deterministic community-maintained linter with ~150 rules, most
-notably, the `posix` rule-group which aims to "replace common bash/posix patterns".
-These rules cover a large subset of bash → nu translation traps.
-
-Useful entry points:
-
-- `nu-lint <path>` — lint files in a directory (default `.`)
-- `nu-lint --stdin --format=compact` — lint a snippet from stdin, one line per finding
-- `nu-lint --explain <rule>` — full rationale for a specific rule
-- `nu-lint --list` — every available rule, by group
-- `nu-lint --fix <path>` — apply auto-fixes (most rules support this)
+- The bundled `nu --lsp` server and the `nu-lint` linter: what each checks and
+its entry points. Read when setting up or interpreting diagnostics.
 
 ## Constraints
 

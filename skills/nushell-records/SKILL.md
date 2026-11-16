@@ -1,15 +1,15 @@
 ---
 name: nushell-records
 description: >
-  This skill should be used when writing or transforming Nushell records
-  (key-value structures) or tables — including `$env` manipulation, record
-  literals, column projection with `select`/`reject`, building records from
-  iterables, or any time keys/values/columns are being added, removed,
-  filtered, or restructured. Trigger phrases: "record", "table",
-  "key/value", "select column", "build a record", "filter columns",
-  "transform $env".
-version: 0.2.0
+  Builds, reshapes and filters Nushell records and tables: literals,
+  `select`/`reject`/`upsert`, `record each`/`record where`, `transpose`,
+  `into record`, cell paths and `--optional`. Use when keys or columns are
+  added, removed, renamed or filtered, when `$env` is reshaped, or when
+  converting between records, tables and lists.
 user-invocable: false
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Records and Tables
@@ -24,8 +24,8 @@ Syntax reference: [cheat-sheet → Records / Tables](../nushell-idioms/reference
 - **Table** = list of records with shared columns. Indexed by position (row) AND name (column).
 - **Cell paths** like `$x.a.b.2` work uniformly across records, tables, and lists.
 - **`transpose`** moves between table and key/value-pair form.
-- **`record each` / `record where`** map and filter a record into a new record (nu >= 0.117).
-- **`into record`** turns a list of `[key value]` pairs or single-key records into one record; given a table it merges the rows.
+- **`record each` / `record where`** map and filter a record into a new record.
+- **`into record`** turns a list of `[key value]` pairs or single-key records into one record (a table is a different case, see Pitfalls).
 
 ## The four record-building patterns
 
@@ -66,9 +66,9 @@ $env | record where key starts-with NU_
 {a: 1, b: 2} | record each {|k v| {$k: ($v * 2)} }                         # → {a: 2, b: 4}
 ```
 
-They are the fastest options by a wide margin (measured on 5,000 fields, nu 0.117.1-nightly: `record each` 5.0 ms against 28 ms for `items … | into record` and 51 ms through `transpose`; `record where` 3.1 ms with a closure and 4.2 ms with a row condition, against 12.5 ms for `items … | compact | into record`). Never build a record with `reduce --fold {} { … upsert … }`: every step copies the accumulator, so it is quadratic (555 ms against 27 ms for the `items` form at 5,000 fields).
+They are the fastest options by a wide margin ([timings](../nushell-performance/references/cost-model.md#record-transforms)). Never build a record with `reduce --fold {} { … upsert … }`: it is quadratic (see [`nushell-performance`](../nushell-performance/SKILL.md)).
 
-`items {|k v| … }` remains the tool when the result is not a record (printing, collecting a list), and `items {…} | compact | into record` is the fallback on older nu.
+`items {|k v| … }` remains the tool when the result is not a record (printing, collecting a list).
 
 ## Cell paths and safe navigation
 
@@ -76,7 +76,7 @@ The `?` postfix is **the** idiom for safe access — works inline on any cell pa
 
 ## Selecting columns with `--optional`
 
-`select --optional KEY1 KEY2` is `?` for the column-projection case — missing keys return null instead of erroring. Useful when probing `$env` or unknown-shape data. `get` and `reject` take the same flag. Its old spelling, `--ignore-errors` (`-i`), is deprecated since nu 0.106 on all three commands; new code uses `--optional` (`-o`).
+`select --optional KEY1 KEY2` is `?` for the column-projection case — missing keys return null instead of erroring. Useful when probing `$env` or unknown-shape data. `get` and `reject` take the same flag (short form `-o`).
 
 ## Record ↔ table ↔ list
 
@@ -119,6 +119,6 @@ For ordered key/value pairs where the same key can appear multiple times (HTTP h
 
 - **`into record` on a table merges the rows** (union of columns, later rows win): `[[k v]; [a 1] [b 2]] | into record` is `{k: b, v: 2}`, not `{a: 1, b: 2}`. It is not a key/value conversion; use `transpose --ignore-titles --header-row --as-record`.
 - **`rotate` is not `transpose`** for records: `{a: 1} | rotate` puts the value before the key, so `rotate key value` labels the columns backwards. Use `transpose key value`.
-- **`get` errors on a missing key** unless given `--optional` (`-o`), which returns null instead. Don't write the deprecated `--ignore-errors` (`-i`) spelling. `?` postfix on cell path is the inline equivalent.
+- **`get` errors on a missing key** unless given `--optional` (`-o`), which returns null instead. `?` postfix on cell path is the inline equivalent.
 - **Records preserve insertion order**, but operations like `transpose` may reorder; don't rely on iteration order semantically.
 - **Empty record literal is `{}`**, which is identical to JSON syntax — but `{1 2 3}` is invalid record syntax (use `[1 2 3]` for a list).

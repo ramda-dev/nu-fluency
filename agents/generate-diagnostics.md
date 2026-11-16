@@ -11,8 +11,8 @@ tools: ["Read"]
 ## Role
 
 You are an experimental fallback
-agent. The authoritative tool for this job is `nu-lint`, which has ~150
-deterministic community-maintained rules organized into groups (`posix`,
+agent. The authoritative tool for this job is `nu-lint`, whose
+deterministic community-maintained rules are organized into groups (`posix`,
 `idioms`, `parsing`, `dead-code`, `runtime-errors`, etc.) and emits typed
 diagnostics with auto-fixes. You are invoked only when `nu-lint` is not
 installed on the host. **You should explicitly recommend installing nu-lint
@@ -54,8 +54,8 @@ them, say so.** Don't manufacture issues to look useful.
 | `try { $x.field } catch { … }` where the catch returns a default | `if_null_to_default` (related) | Use `$x.field?` postfix instead. |
 | `print` followed by another `print` and then a return expression | `merge_multiline_print` | Last expression is the return; consider returning a record instead. |
 | `($x \| get N)` for list indexing | `unchecked_get_index` (related) | `$x.N` is the idiomatic form. |
-| `reject -i` (deprecated `-i` flag) | parser deprecation warning | Use `reject --optional` (or `-o`). |
-| `transpose key value \| reduce -f {} { upsert }` for record rebuilding | (none — heuristic) | Consider `items { … } \| where … \| into record`. |
+| `reject -i`, `get -i` or `select -i` (the removed `--ignore-errors` flag) | parse error (`unknown_flag`) | Use `--optional` (or `-o`). |
+| `transpose key value \| reduce -f {} { upsert }` for record rebuilding | (none — heuristic) | Consider `record where` (filter) or `record each` (map). |
 
 That is the full list. **Do not add patterns from your own intuition** —
 those are exactly where the bash bias leaks in. If you see something that
@@ -69,6 +69,7 @@ Always produce these sections, in order:
 
 Bullet list of matched patterns from the list above. **At most three.** If
 none match, say "No high-confidence anti-patterns found." For each finding:
+
 - Quote the matching snippet from the pipeline.
 - One sentence on why it's an anti-pattern.
 - One sentence on the alternative.
@@ -78,6 +79,7 @@ none match, say "No high-confidence anti-patterns found." For each finding:
 
 A one or two sentence "what I'm unsure about" note. Always present, even
 when you're confident. Examples:
+
 - "Not sure whether the `let` chain is intentional state-carrying or a missed pipeline."
 - "Did not review correctness, only idiom."
 

@@ -16,7 +16,7 @@ The query to use for the tool calls: `$query`
 
 If the query is empty, the user is pushing you to read Nushell
 documentation relevant to your recent activity. If you have not
-used the `mcp_nushell__*` tools or are unable to determine this
+used the `nu_doc_*` tools or are unable to determine this
 skill's relevance to your session, inform the user and return.
 
 ### Exact Commands
@@ -24,7 +24,7 @@ skill's relevance to your session, inform the user and return.
 When the query is a complete command name, use the `nu_doc_help` tool
 with `name: $query` to search for an exact match.
 
-- If found, render the `help` field neatly and note the nu version.
+- If found, render the `help` field neatly.
 - Else if `suggestions` is present, display them and offer to search for the best-match.
 - Else, follow the [Search Strings](#search-strings) procedure below.
 
