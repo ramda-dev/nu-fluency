@@ -1,17 +1,25 @@
 ---
 name: audit-pipeline
 description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
-arguments: [expression]
-argument-hint: [<expression>, "[--read-only]"]
+argument-hint: "<nushell snippet> [--read-only]"
 allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Task(*)", "Read(*)"]
 shell: bash
 ---
 
 # Audit Pipeline
 
-The `!`-executed probes and `$expression` substitution below run once at
+The `!`-executed probes and the `$ARGUMENTS` substitution below run once at
 invocation, like a slash command's preprocessing — this is not a recurring
 hook.
+
+## Snippet
+
+The snippet to lint is everything passed to the skill, without a `--read-only`
+flag at its start or end:
+
+```text
+$ARGUMENTS
+```
 
 ## Environment
 
@@ -29,14 +37,14 @@ Else, follow the [fallback](#fallback) instructions.
 
 ## Procedure
 
-1. Run the linter with the pipeline. Call it by name, `nu-lint`, as written
+1. Run the linter on the snippet. Call it by name, `nu-lint`, as written
    below rather than by the path found above, so the skill's permission rule
    covers it.
 
    ```bash
-   # quoted heredoc (<<'PIPELINE') stops bash from expanding the substituted pipeline as shell syntax
+   # quoted heredoc (<<'PIPELINE') stops bash from expanding the snippet as shell syntax
    nu-lint --stdin --format compact --config "${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml" <<'PIPELINE'
-   $expression
+   <the snippet, verbatim>
    PIPELINE
    ```
 

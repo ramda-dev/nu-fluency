@@ -110,7 +110,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 ([`cheat-sheet.md`](skills/nushell-idioms/references/cheat-sheet.md)),
 `bash` → `nu` equivalents, pointers to nu-lint.
 - **`/inspect-shape <expr>`**
-— runs `<expr> | describe` + a sample row through `nu_exec`. Structural intuition.
+— runs `<expr>` through `nu_exec` and returns its detailed type, length and first rows. Structural intuition.
 - **`/env-snapshot [keys...]`**
 — `$env | select --optional <keys>` with sensible defaults.
 - **`/audit-pipeline <pipeline>`**
