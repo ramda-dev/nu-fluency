@@ -316,6 +316,7 @@ let s: string = 42      # invalid (parser error)
 "hello"     | str replace "l" "L"            # "heLlo"   (first match)
 "hello"     | str replace --all "l" "L"      # "heLLo"   (all matches)
 "foo123bar" | str replace --regex '\d+' "X"  # "fooXbar"
+"ab"        | str replace --regex '(a)(b)' '$2$1'  # "ba"  (sed's \1 is $1; a named group is ${name})
 
 # trim
 "  pad  " | str trim                         # "pad"
@@ -617,8 +618,9 @@ $list | where not ($it.flag? | default false)   # negate predicate; `where` has 
 
 ```nu
 ^cmd args | complete                       # → { stdout, stderr, exit_code }
-do --ignore-errors { ^cmd args }           # swallows a non-zero exit only as a statement of its own;
-                                           # bound or piped, it still raises (use complete)
+do --ignore-errors { ^cmd args }           # swallows a non-zero exit as a statement of its own, as a
+                                           # returned value, or piped to ignore/complete; bound with let,
+                                           # passed as an argument or piped on, it still raises (use complete)
 try { ... } catch { |e| ... }              # catch nu errors (see Control Flow)
 (^cmd args | complete).exit_code           # exit code without raising (a failing ^cmd statement
                                            # stops the script before $env.LAST_EXIT_CODE is read)

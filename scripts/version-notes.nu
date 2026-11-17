@@ -102,12 +102,14 @@ def notes []: nothing -> list<record> {
     if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
     let prose = [id symptom workaround repro] | where ($n | get $it | describe) != string
     if ($prose | is-not-empty) { error make --unspanned {msg: $"($id): not a string: ($prose | str join ', ')"} }
-    let broken = [symptom workaround repro] | where ($n | get $it) =~ "\n"
+    let broken = [id symptom workaround repro] | where ($n | get $it) =~ "\n"
     if ($broken | is-not-empty) { error make --unspanned {msg: $"($id): line break in ($broken | str join ', ')"} }
     if ($n.skills | describe) !~ '^list<string>' { error make --unspanned {msg: $"($id): skills must be a non-empty list of strings"} }
+    if $n.repro =~ '`' { error make --unspanned {msg: $"($id): backtick in repro"} }
     if $n.kind == option and (($n.option | describe) !~ '^record' or ($n.option.name? | describe) != string or ($n.option.enabled? | describe) != bool) {
       error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
     }
+    if $n.kind == option and $n.option.name =~ "\n" { error make --unspanned {msg: $"($id): line break in option name"} }
     let unknown = $n.skills | where not ($SKILLS | path join $it SKILL.md | path exists)
     if ($unknown | is-not-empty) { error make --unspanned {msg: $"($id): no skill ($unknown | str join ', ')"} }
     if $n.kind == diagnostic {
@@ -115,6 +117,7 @@ def notes []: nothing -> list<record> {
       let bad = if $n.until != null and (($n.until | describe) != string or $n.until !~ $VERSION) { $bad | append [$n.until] } else { $bad }
       if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version string: ($bad | to nuon)"} }
       if $n.upstream != null and ($n.upstream | describe) != string { error make --unspanned {msg: $"($id): upstream must be a string or null"} }
+      if $n.upstream != null and $n.upstream =~ "\n" { error make --unspanned {msg: $"($id): line break in upstream"} }
       if (older $n.reproduced $n.since) { error make --unspanned {msg: $"($id): reproduced is older than since"} }
       if $n.until != null and not (older $n.reproduced $n.until) { error make --unspanned {msg: $"($id): until must be newer than reproduced"} }
     }
@@ -156,7 +159,8 @@ def reference []: nothing -> string {
     'Nushell bugs that the skills work around. "Since" is the oldest version'
     $"that reproduces the bug \(($OLDEST_CHECKED) was the oldest checked\), \"Reproduced\" the newest,"
     'and "Fixed in" the first version without it. The skills in this plugin print,'
-    'when they load, the rows that apply to the running nu.'
+    'when they load, the rows that apply to the running nu. In this file, `\|` inside'
+    'a code span stands for `|`; drop the backslash before running a repro.'
     ''
     '| Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |'
     '|---|---|---|---|---|---|---|---|'

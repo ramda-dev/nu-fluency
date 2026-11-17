@@ -141,7 +141,7 @@ and first rows. Structural intuition.
 - **`nushell-modules`**
 — `module`/`use`/`export def`/`export-env`/`main`.
 - **`nushell-performance`**
-— closure-entry cost model, profile-first workflow, `probe` kit (`scripts/probe.nu`).
+— closure-entry cost model, profile-first workflow, `probe` kit ([`skills/nushell-performance/scripts/probe.nu`](skills/nushell-performance/scripts/probe.nu)).
 
 ### Version notes
 

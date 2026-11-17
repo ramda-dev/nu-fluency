@@ -107,7 +107,7 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
 3. `probe entries {|| <call> }`: exact closure-command entries of one run, by command. Entries times about
    3 us (6 us for `record each` / `record where`, 8 for `generate`) is the most that rewriting them as loops can
    remove; a `tee`, `interleave` or `par-each` entry is a budget item, so subtract those (listed in `by`)
-   from `total` first. `total` counts only commands that always take a closure: `update`, `insert`,
+   from `total` first. `total` counts only commands that always take a closure: `update`, `upsert`, `insert`,
    `default`, `group-by`, `sort-by`, `collect`, `zip` and `str replace` are tallied in `closure-or-value`
    whether given a closure or a value, so check the source before counting them.
    Entries made per element usually matter more than their count suggests, because each one also pays its
@@ -116,7 +116,8 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
 4. Build the workload from literal data shaped like the real input, never from live user data. When the real
    input is empty or tiny, that is the workload: measure the guard path and stop, rather than tuning for a
    size nobody has. When input size varies, measure several sizes: a `for` with `++=` rewrite of a completion
-   formatter won below about 120 items and lost badly above. When the common case is dominated by something
+   formatter won below about 120 items and lost badly above (on nu 0.115.2-nightly, when closure entry cost
+   several times more; see [loop shapes](references/cost-model.md#loop-shapes) for 0.117.1). When the common case is dominated by something
    else (a glob, an external), quote the case where the change shows, say which real case it is, and report
    the common one too.
 5. Apply the first pattern below that fits.

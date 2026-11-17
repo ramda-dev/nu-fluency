@@ -31,6 +31,13 @@ prompt). A space that was already next to the `!` (before it, or
 between it and a backtick) cannot be told apart from an inserted one, so keep
 it only where the code needs it.
 
+Two more changes cannot be undone: Claude Code expands its own `${CLAUDE_…}`
+placeholders in the arguments (the plugin root, project directory, plugin data,
+skill directory, session id and effort, each written in that dollar-brace form),
+and a `\!` the code already had after a space arrives unchanged, so it reads like
+an escaped `!`. When the snippet may hold either, lint the file or the code as
+you wrote it instead.
+
 If the snippet is empty (no arguments, only `--read-only`, or the block above
 still shows the placeholder), lint the Nushell code you most recently wrote or
 ran. If the block holds only the path of a `.nu` file, lint that file: give its

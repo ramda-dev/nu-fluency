@@ -64,7 +64,7 @@ The checks made when the value arrives depend on the
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
 | `grep pattern file` | `open --raw file \| lines \| where $it =~ 'pattern'` (or `find --no-highlight --regex 'pattern'`; single quotes keep regex backslashes literal; without `--regex`, `find` matches a literal substring, and without `--no-highlight` it wraps matches in ANSI highlighting) |
 | `awk '{print $(2)}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
-| `sed 's/a/b/'` | `lines \| str replace --regex 'a' 'b'` (per line, like sed; drop `--regex` for a literal match; add `--all` for `s/a/b/g`) |
+| `sed 's/a/b/'` | `lines \| str replace --regex 'a' 'b'` (per line, like sed; drop `--regex` for a literal match; add `--all` for `s/a/b/g`; sed's `\1` back-references are written differently, see the [cheat sheet](./references/cheat-sheet.md#strings)) |
 | `cat f \| head -n 5` | `open --raw f \| lines \| first 5` |
 | `wc -l < file` | `open --raw file \| lines \| length` |
 | `arr=(a b c); echo "${arr[1]}"` | `let arr = [a b c]; $arr.1` |

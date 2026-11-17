@@ -5,7 +5,8 @@
 Nushell bugs that the skills work around. "Since" is the oldest version
 that reproduces the bug (0.114.1 was the oldest checked), "Reproduced" the newest,
 and "Fixed in" the first version without it. The skills in this plugin print,
-when they load, the rows that apply to the running nu.
+when they load, the rows that apply to the running nu. In this file, `\|` inside
+a code span stands for `|`; drop the backslash before running a repro.
 
 | Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |
 |---|---|---|---|---|---|---|---|
