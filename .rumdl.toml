@@ -1,4 +1,7 @@
 [global]
-    disable = [ 'MD060' ]
+    # MD013 (line length): the skill bodies and docs are wrapped at 80, at 120, or not at
+    # all (one paragraph per line), and models read them as whole paragraphs, so no single
+    # width fits without rewrapping text that reads fine.
+    disable = [ 'MD013', 'MD060' ]
     # Verbatim copies of external notes, and generated eval cases: not linted.
     exclude = [ 'docs/sources/**', 'tests/triggers/**' ]
