@@ -109,7 +109,8 @@ export def check [
   # Inside WSL, nu-lint ran only if the script said READY; otherwise nu-lint is missing
   # there or `wsl.exe` could not run the script, and `stderr` says which.
   if $linter.via == wsl and not $result.ran {
-    return ($not_found | update stderr ($result.stderr | default 'nu-lint not found' | str trim))
+    let why = $result.stderr | str trim
+    return ($not_found | update stderr (if ($why | is-empty) { 'nu-lint could not be run inside WSL' } else { $why }))
   }
   {
     linter: $linter

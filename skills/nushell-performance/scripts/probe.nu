@@ -30,6 +30,8 @@ const ALWAYS: list<string> = [
   tee
   interleave
 ]
+# Shown when a timed closure fails: a bound external result raises on a non-zero exit.
+const COMPLETE_HINT = 'if it ends in an external that can exit non-zero, end it in `| complete`'
 const MAYBE: list<string> = [default update upsert insert collect zip 'str replace' group-by sort-by]
 
 # Exact number of closure-command entries one run of `code` makes, by command.
@@ -47,13 +49,13 @@ export def entries [code: closure]: nothing -> record<total: int, by: record, cl
 # Median milliseconds of one run of `code`. Each run's result is bound (`let _ =`), not piped to `ignore`, so a
 # closure that ends in `try` keeps its catch (try-escapes-under-ignore); a streamed result is therefore collected,
 # which adds 0.1 to 0.2 us per element (nu 0.117.0). `compare` and `calibrate` time the same way. A bound result
-# also raises when the closure ends in an external that exits non-zero, so a warm-up run that fails raises one
-# clear error before timing; end such a closure in `| complete` to time it anyway.
+# also raises when the closure ends in an external that exits non-zero, so a first run that fails raises one clear
+# error before timing (in `compare` too); end such a closure in `| complete` to time it anyway.
 export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -> float {
   try { let _ = do $code } catch {|e|
     error make --unspanned {
-      msg: 'the timed closure failed'
-      help: $"($e.msg)\nif it ends in an external that can exit non-zero, end it in `| complete`"
+      msg: $"the timed closure failed: ($e.msg)"
+      help: $COMPLETE_HINT
     }
   }
   1..$passes | each {
@@ -68,8 +70,8 @@ export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -
 # `noise_pct` is the median distance of one pass's gain from the median gain, in points: a `gain_pct` that is
 # not several times clear of it is not a gain.
 export def compare [old: closure new: closure --rounds: int = 100 --passes: int = 5]: nothing -> record {
-  let a = do $old
-  let b = do $new
+  let a = try { do $old } catch {|e| error make --unspanned {msg: $"the old closure failed: ($e.msg)" help: $COMPLETE_HINT} }
+  let b = try { do $new } catch {|e| error make --unspanned {msg: $"the new closure failed: ($e.msg)" help: $COMPLETE_HINT} }
   if $a != $b { error make --unspanned {msg: 'the variants return different values; nothing timed' help: $"old: ($a | to nuon | str substring 0..300)\nnew: ($b | to nuon | str substring 0..300)"} }
   let _ = do $old; let _ = do $new
   let half: int = [($rounds // 2) 1] | math max
