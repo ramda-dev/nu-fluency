@@ -14,6 +14,11 @@ claude plugin marketplace add zaynram/cowork-marketplace
 claude plugin install nu-fluency@ramda-cowork-marketplace
 ```
 
+On Windows, the plugin expects Git Bash to be installed, as most development setups have
+it. Windows without Git Bash is untested: the version-notes skills are written to run
+through PowerShell there (see [Version notes](#version-notes)), but nothing else has been
+checked in that environment.
+
 ## Background
 
 When first introducing Claude to `nu`, we both agreed that it seemed like an
@@ -155,8 +160,8 @@ and behavior that depends on an experimental option. The idioms, control-flow,
 env-scoping and performance skills run `scripts/version-notes.nu` when they load
 and show only the notes that apply to the installed `nu`; the full table is
 [`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
-The command runs through Bash, or through PowerShell on Windows without Git Bash,
-and each skill allows it for both. It needs `nu` on `PATH`: without it those four
+The command runs through Bash, or through PowerShell on Windows without Git Bash
+(untested), and each skill allows it for both. It needs `nu` on `PATH`: without it those four
 skills fail to load.
 After editing the data, run
 `nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
