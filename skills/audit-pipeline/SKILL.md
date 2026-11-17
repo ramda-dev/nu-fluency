@@ -95,10 +95,11 @@ Else, follow the [fallback](#fallback) instructions.
    ([definition](../../agents/generate-diagnostics.md)). Pass it the code to
    lint, un-escaped: the snippet, the code you most recently wrote or ran when
    the snippet is empty, or for a `.nu` path that path with an instruction to
-   Read the file and review its contents. If nu-lint is installed but was not
-   found (inside WSL only in `~/.cargo/bin`, or the strict config path inside
-   WSL was `not found`), say so, so the agent recommends the README's symlink
-   step or a config fix instead of an install.
+   Read the file and review its contents. If the WSL installation path was an
+   absolute path but the strict config path inside WSL was `not found`, say
+   so, so the agent recommends a config fix instead of an install. On a
+   Windows host, also tell it that nu-lint installed inside WSL only in
+   `~/.cargo/bin` is not found, so it mentions the README's symlink step.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its

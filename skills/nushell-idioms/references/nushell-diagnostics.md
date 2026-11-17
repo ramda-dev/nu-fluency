@@ -20,8 +20,8 @@ when they load, the rows that apply to the running nu.
 
 Behavior that depends on an experimental option. The skills print a note as a
 condition when the shell that runs the code could have the option set either way
-(`debug experimental-options` lists the settings), and as fact when the option''s
-default in the running nu is the setting the note warns about.
+(`debug experimental-options` lists the settings), and as fact when the default
+of the option in the running nu is the setting the note warns about.
 
 | Setting | Symptom | Repro | Workaround |
 |---|---|---|---|

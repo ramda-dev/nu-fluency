@@ -25,7 +25,7 @@ Syntax reference: [cheat-sheet → Records / Tables](../nushell-idioms/reference
 - **Cell paths** like `$x.a.b.2` work uniformly across records, tables, and lists.
 - **`transpose`** moves between table and key/value-pair form.
 - **`record each` / `record where`** map and filter a record into a new record.
-- **`into record`** turns a list of `[key value]` pairs or single-key records into one record; it does this by merging rows, so a key/value table (`[[k v]; …]`) is not converted pairwise (see Pitfalls).
+- **`into record`** turns a list of `[key value]` pairs or single-key records into one record; given a table it merges the rows instead, so a key/value table (`[[k v]; …]`) is not converted pairwise (see Pitfalls).
 
 ## The four record-building patterns
 

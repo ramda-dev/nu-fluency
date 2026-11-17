@@ -5,7 +5,8 @@ How to carry `$env` across separate nu invocations through a file. Prefer a pers
 ```nu
 # Load
 let __persisted = try {
-    open --raw $path | from json | reject --optional PWD FILE_PWD CURRENT_FILE
+    open --raw $path | from json
+    | reject --optional PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS
 } catch { {} }
 for entry in ($__persisted | transpose key value) {
     try { load-env { ($entry.key): $entry.value } } catch {}
@@ -15,10 +16,10 @@ for entry in ($__persisted | transpose key value) {
 
 # Save
 $env
-| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE
+| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS
 | record each {|k v| try { $v | to json --raw | ignore; [$k $v] } catch { null } }
 | to json --raw
 | save --force --raw $path
 ```
 
-Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).
+Both sides drop the variables nu sets itself, so a saved value never overwrites the running process's own. Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).

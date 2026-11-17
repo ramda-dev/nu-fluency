@@ -1,8 +1,9 @@
 # Version notes for the nu-fluency skills: read by scripts/version-notes.nu.
 #
 # kind: option      behavior that depends on an experimental option. `option.enabled`
-#                   is the setting the note warns about; the note applies only when
-#                   the running nu has that option and it is set that way.
+#                   is the setting the note warns about; the note is shown for every
+#                   nu that has the option, as a condition, or as fact when that
+#                   setting is the option's default.
 # kind: diagnostic  an unresolved Nushell bug. `since` is the oldest version that
 #                   reproduces it (0.114.1 was the oldest checked), `reproduced` the
 #                   newest, `until` the first fixed version once known (null: open).

@@ -154,8 +154,8 @@ def reference []: nothing -> string {
     ''
     'Behavior that depends on an experimental option. The skills print a note as a'
     'condition when the shell that runs the code could have the option set either way'
-    '(`debug experimental-options` lists the settings), and as fact when the option''s'
-    'default in the running nu is the setting the note warns about.'
+    '(`debug experimental-options` lists the settings), and as fact when the default'
+    'of the option in the running nu is the setting the note warns about.'
     ''
     '| Setting | Symptom | Repro | Workaround |'
     '|---|---|---|---|'
@@ -169,7 +169,11 @@ def main [skill: string]: nothing -> string {
   try {
     let running = version | get version
     let notes = applicable $skill | each { bullet $running }
-    if ($notes | is-empty) { $"None for nu ($running)." } else { $notes | str join "\n" }
+    if ($notes | is-not-empty) { return ($notes | str join "\n") }
+    let checked = notes | where kind == diagnostic and $skill in $it.skills | get since
+    if ($checked | any { older $running $in }) {
+      $"None known for nu ($running), which is older than the versions these notes were checked on."
+    } else { $"None for nu ($running)." }
   } catch {|e| $"Unavailable: the notes script failed \(($e.msg)\)." }
 }
 

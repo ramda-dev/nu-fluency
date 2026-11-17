@@ -223,7 +223,8 @@ let control_flow_ms = section control_flow_ms {
   }
 }
 
-# Builtins worth knowing (cost-model.md#builtins-worth-knowing): closure-free options that 0.116/0.117 added or changed, against the closure forms they replace.
+# Builtins worth knowing (cost-model.md#builtins-worth-knowing): closure-free options that 0.116/0.117
+# added or changed, against the closure forms they replace.
 let closure_free_ms = section closure_free_ms {
   let left = 1..1000 | each {|i| {k: $i} }
   let right = 1..500 | each {|i| {k: ($i * 2)} }

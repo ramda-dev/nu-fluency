@@ -101,7 +101,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 | Type | Count | Purpose |
 |---|---|---|
 | Skills | 11 | `/nushell-idioms`, `/env-snapshot`, `/audit-pipeline`, `/command-help`; model-only: `inspect-shape`, `nushell-{records,env-scoping,strings,control-flow,modules,performance}` |
-| Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` isn't installed (**experimental**) |
+| Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` is not installed or cannot be found (**experimental**) |
 | Hooks | 2 | Pre-`Bash` nudge toward nu equivalents; post-`nu_exec`/`nu_repl_write` hook that runs `nu-lint` on the executed code |
 | LSP | 1 | `nu --lsp` via `lspServers` in `.claude-plugin/plugin.json` |
 | Configs | 2 | `configs/hook.nu-lint.toml`, `configs/strict.nu-lint.toml` |
