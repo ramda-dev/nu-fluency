@@ -1,11 +1,13 @@
 ---
 name: nushell-idioms
 description: >
-  Idiomatic Nushell instead of bash translated into nu: structured data,
-  pipelines over `let` chains, bash-to-nu equivalents and the common traps.
-  Use whenever writing, reading, debugging or running Nushell (`.nu` and
-  `.nuon` files, the `nu_exec`/`nu_repl` tools) or converting shell code to
-  nu.
+  Load before writing, converting, reading, or debugging any Nushell code,
+  including a one-line answer: it holds the idiomatic nu forms that replace
+  bash-translated habits (`cat | jq`, `sort | uniq`, `grep`, `wc -l`) and the
+  bash-to-nu equivalents table. Use for a `.nu` script, a `.nuon` file, the
+  `nu_exec`/`nu_repl` MCP tools, or when the user mentions 'nushell',
+  'nu script', 'nu pipeline', 'writing nu', 'calling nu_exec',
+  'convert this to nu'.
 allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:

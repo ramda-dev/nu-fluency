@@ -1,11 +1,15 @@
 ---
 name: nushell-records
 description: >
-  Builds, reshapes and filters Nushell records and tables: literals,
-  `select`/`reject`/`upsert`, `record each`/`record where`, `transpose`,
-  `into record`, cell paths and `--optional`. Use when keys or columns are
-  added, removed, renamed or filtered, when `$env` is reshaped, or when
-  converting between records, tables and lists.
+  Load before writing or answering anything about Nushell records or tables,
+  including a short question: it covers the current record commands
+  (`record each`, `record where`) and the conversions (`into record`,
+  `transpose`) that answers from memory get wrong. Applies to renaming,
+  adding, dropping, or filtering keys and columns, null fields, record
+  literals, `select`/`reject`, building records from lists, and `$env`
+  manipulation. Trigger phrases: "record", "table", "key/value",
+  "rename keys", "drop fields", "select column", "build a record",
+  "filter columns", "transform $env".
 user-invocable: false
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:

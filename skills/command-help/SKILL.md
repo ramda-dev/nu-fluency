@@ -3,9 +3,10 @@ name: command-help
 description: Get helpful information using the `nu_doc_help` and `nu_doc_search` MCP tools. Use when searching for a command, querying available commands, needing information about a command, inspecting a command signature (e.g. I/O contract, parameter types, return types), or when the user mentions "nu help", "query the nu docs", "what does {command} do", or "is there a nu command for this".
 arguments: [query]
 argument-hint: [<query>]
-allowed-tools: ["mcp__nushell__nu_doc_help", "mcp__nushell__nu_doc_search"]
-compatibility: { nu: '>=0.117.0' }
-version: 0.1.3
+allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_doc_help", "mcp__plugin_nu-fluency_nushell__nu_doc_search"]
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.1.4
 ---
 
 # Command Help

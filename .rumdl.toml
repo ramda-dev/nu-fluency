@@ -1,4 +1,4 @@
 [global]
     disable = [ 'MD060' ]
-    # Verbatim copies of external notes; preserved as written, not linted.
-    exclude = [ 'docs/sources/**' ]
+    # Verbatim copies of external notes, and generated eval cases: not linted.
+    exclude = [ 'docs/sources/**', 'tests/triggers/**' ]

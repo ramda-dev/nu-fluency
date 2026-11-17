@@ -4,7 +4,7 @@ version = '3.0.0'
   name   = 'v0.4.0 Stable Close-Out'
   slug   = 'v0-4-0-close-out'
   date   = 2026-07-20
-  status = 'draft'
+  status = 'open'
 
   [issue.vision]
     outcome = 'singular'
@@ -28,7 +28,7 @@ version = '3.0.0'
     [issue.vision.criteria]
       requirements = [
         'Round-trip trigger tests green.',
-        'markdown-toolkit-vale clean over all SKILL.md prose.',
+        'Vale clean over all SKILL.md prose.',
         'Versions coherent across corpus and manifests.',
         'Stable tag pushed with release; both manifests bumped atomically to converge cached installs.',
       ]
@@ -68,19 +68,19 @@ index = 8
     completed = false
     subtasks  = [
       {
-        synopsis = 'Run trigger round-trip tests',
+        synopsis = 'Run trigger round-trip tests, perf included',
         llm      = 'automation',
-        done     = false
+        done     = true
       },
       {
-        synopsis = 'Run vale over SKILL.md prose',
+        synopsis = 'Run vale over SKILL.md prose, after the #25 audit',
         llm      = 'automation',
-        done     = false
+        done     = true
       },
       {
-        synopsis = 'Sweep versions for coherence',
+        synopsis = 'Sweep versions onto the metadata.version layout',
         llm      = 'augmentation',
-        done     = false
+        done     = true
       },
       {
         synopsis = 'Tag and release v0.4.0',

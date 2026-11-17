@@ -200,6 +200,14 @@ Assert via in-`nu` equality checks, not raw NUON comparison.
 6. The last expression in a closure or pipeline is its return value, akin to `rust`.
 Don't `print` what you're returning.
 
+## Tests
+
+- `nu --no-config-file hooks/tests/nu-over-bash.nu` runs the Bash-nudge hook cases.
+- `claude plugin eval . --tag triggers --ablation none --runs 1` runs the skill
+trigger round-trip cases in `tests/triggers/`: each skill has a prompt that must
+invoke it and a nearby prompt that must not. `tests/README.md` has the details.
+- `vale skills/` lints the skill prose (`.vale.ini`).
+
 ## License
 
 MIT.

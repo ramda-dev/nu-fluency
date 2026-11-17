@@ -1,0 +1,29 @@
+# Trigger round-trip cases for `claude plugin eval` (see tests/README.md).
+# positive: the prompt must make Claude invoke the skill.
+# negative: a nearby prompt that must not invoke it.
+# Edit this file, then regenerate tests/triggers/ with `nu tests/gen-triggers.nu`.
+[
+  [skill kind prompt];
+  [audit-pipeline positive "Lint this Nushell pipeline and tell me what is wrong with it: `ls | each {|f| $f.name } | str join ','`"]
+  [audit-pipeline negative "In two sentences, how does Nushell differ from Bash?"]
+  [command-help positive "What does the Nushell `group-by` command do, and which flags does it take?"]
+  [command-help negative "Write a Python function that reverses a string."]
+  [env-snapshot positive "Snapshot the PATH and HOME values from my Nushell environment as a record."]
+  [env-snapshot negative "Write a Bash one-liner that prints the current user's home directory."]
+  [inspect-shape positive "I'm not sure what type `ls | get name` returns in Nushell. Inspect its shape for me."]
+  [inspect-shape negative "Write a Bash one-liner that counts the lines in every .txt file in a folder."]
+  [nushell-control-flow positive "In Nushell, how do I loop over a list and skip the items whose processing throws an error?"]
+  [nushell-control-flow negative "How do I export a command from a Nushell module so another file can `use` it?"]
+  [nushell-env-scoping positive "I set `$env.FOO` inside a closure in Nushell and the change is gone afterwards. Why, and how do I keep it?"]
+  [nushell-env-scoping negative "In Nushell, how do I split a comma-separated string into a list?"]
+  [nushell-idioms positive "Convert this to Nushell: `cat data.json | jq '.items[] | .name' | sort | uniq`"]
+  [nushell-idioms negative "Write a Python script that reads a CSV file and prints its first column."]
+  [nushell-modules positive "How should I lay out a Nushell module with a mod.nu that exports a few commands?"]
+  [nushell-modules negative "In Nushell, how do I keep only the table rows whose size is over 1kb?"]
+  [nushell-performance positive "This Nushell loop over 50,000 rows takes several seconds. How do I find what's slow and speed it up?"]
+  [nushell-performance negative "In Nushell, how do I sort a table by two columns?"]
+  [nushell-records positive "In Nushell, how do I rename the keys of a record and drop the fields whose value is null?"]
+  [nushell-records negative "In Nushell, how do I retry an `http get` up to three times when it fails?"]
+  [nushell-strings positive "In Nushell, how do I parse lines like `user=alice id=7` into a table with user and id columns?"]
+  [nushell-strings negative "How do I give a Nushell script a `main` command with subcommands?"]
+]
