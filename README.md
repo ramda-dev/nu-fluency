@@ -172,7 +172,8 @@ It never blocks or changes the permission decision; the command runs either way.
 Cases live in `hooks/tests/nu-over-bash.nu`
 (`nu --no-config-file hooks/tests/nu-over-bash.nu`).
 
-Post-tool-use hook on MCP `nu_exec` and `nu_repl_write` calls.
+Post-tool-use hook on MCP `nu_exec` and `nu_repl_write` calls, registered for both
+`PostToolUse` and `PostToolUseFailure`, so a call that errors is linted too.
 Reads the tool's `pipeline` (or `input`) argument from stdin (JSON),
 lints it through `scripts/lint.nu` with the narrow `configs/hook.nu-lint.toml`
 (inside WSL too), and surfaces findings as a block reason iff there are

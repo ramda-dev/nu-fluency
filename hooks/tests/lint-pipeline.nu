@@ -24,7 +24,8 @@ def with-stub [code: closure --stub = true --cargo]: nothing -> any {
     let nu_lint = $bin | path join nu-lint
     [
       '#!/bin/sh'
-      'input=$(cat)'
+      # builtins only: the folders that hold a real nu-lint (often /usr/bin) are left off PATH
+      r#'input=$(while IFS= read -r l || [ -n "$l" ]; do printf '%s\n' "$l"; done)'#
       'case "$input" in *FLAG*) echo "<stdin>:1:1: warning(stub_rule): args $*" ;; *) echo "No violations found!" ;; esac'
     ] | str join "\n" | save $nu_lint
     chmod +x $nu_lint
