@@ -78,7 +78,7 @@ For anti-patterns and recalibration, see the [skill](../SKILL.md).
 "hello" | encode utf-8           # 0x[68656C6C6F]   (binary)
 $bytes  | decode utf-8           # "hello"
 
-# base64 (string in / out; chain decode utf-8 to recover text)
+# base64 (encode gives a string, decode gives binary; chain decode utf-8 to recover text)
 "yes"  | encode base64           # "eWVz"
 "eWVz" | decode base64           # 0x[796573]      (binary)
 ```
@@ -204,8 +204,8 @@ $example | update 1 9          # [1 9 3 4 5]
 # filter list elements
 $example | where $it > 3       # [4 5]
 # evaluate a predicate
-$example | any { $in > 2 }     # true
-$example | all { $in > 2 }     # false
+$example | any $it > 2         # true
+$example | all $it > 2         # false
 # create new list by iteration
 $example | each {|n|
   $n + 1
@@ -220,9 +220,7 @@ $example | reduce {|n acc|
   $acc + $n
 }                              # 15
 # predicate-bound slicing
-$example | take while {|n|
-  $n < 3
-}                              # [1 2]
+$example | take while $it < 3  # [1 2]
 ```
 
 ```nu
@@ -601,7 +599,7 @@ use mymod double
 double 21                              # 42
 ```
 
-**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules`](../../nushell-modules/SKILL.md) has the full matrix.
+**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules` → Dispatch](../../nushell-modules/SKILL.md#dispatch-main-subcommands-and-constants) has a worked example of every case.
 
 ## Useful Flags and Forms
 
@@ -612,7 +610,7 @@ double 21                              # 42
 $record | select --optional a b c          # missing → null
 $record | reject --optional a b            # missing → no error
 $record | get --optional name              # missing → null (postfix `?` is equivalent)
-$list | where { |x| not ($x.flag? | default false) }   # negate predicate; `where` has no --not flag
+$list | where not ($it.flag? | default false)   # negate predicate; `where` has no --not flag
 ```
 
 ### Error and Exit Handling

@@ -11,8 +11,8 @@
 # no note applies and never fails: a failing injected command aborts the whole skill.
 # It runs in a fresh process, which sees each experimental option at its default
 # whatever the user's own shell sets, so an option note is printed as a condition
-# for every nu that has the option, and stated as fact when the default is the
-# setting it warns about.
+# for every nu that has the option, and stated as fact when the option's default
+# (from its `status`: opt-out is on by default, opt-in off) is the setting it warns about.
 
 const DATA = path self version-notes.nuon
 const REFERENCE = path self ../skills/nushell-idioms/references/nushell-diagnostics.md
@@ -40,15 +40,17 @@ def older [a: string b: string]: nothing -> bool {
 
 # The notes that apply to the running nu, with the reason for each. An option note
 # applies when the running nu has the option; `default` says whether the option's
-# default here is the setting the note warns about.
+# default is the setting the note warns about.
 def applicable [skill: string]: nothing -> table {
   let running = version | get version
-  let options = debug experimental-options | select identifier enabled
+  let options = debug experimental-options | select identifier status
   open $DATA | where $skill in $it.skills | each {|note|
     match $note.kind {
       option => {
-        let setting = $options | where identifier == $note.option.name | get enabled.0?
-        if $setting != null { $note | insert $.stale false | insert $.default ($setting == $note.option.enabled) }
+        let status = $options | where identifier == $note.option.name | get status.0?
+        if $status != null {
+          $note | insert $.stale false | insert $.default (($status == opt-out) == $note.option.enabled)
+        }
       }
       diagnostic => {
         let affected = (not (older $running $note.since)) and ($note.until == null or (older $running $note.until))

@@ -6,7 +6,7 @@ description: >
   and the automatic variables. Use when code sets or reads `$env`, or when
   an env change does not show up where expected.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" *)
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
   version: 0.2.1
@@ -20,12 +20,12 @@ Syntax reference: [cheat-sheet → Env and Scope](../nushell-idioms/references/c
 
 Known bugs for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping 2>/dev/null || true`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 ## The four propagation rules
 
 1. **Top-level code** mutates the script's env. Always propagates downward to children.
-2. **`for n in $list { … }`** — env mutations inside the loop body **propagate to the outer scope**.
+2. **Keyword blocks** (`for`, `while`, `loop`, `if`/`else`, `match` arms, `try`) — env mutations inside **propagate to the outer scope**.
 3. **`each`, `items`, `reduce`, `where`** — closure invocations. Env mutations inside **do not propagate** to the outer scope.
 4. **`do --env { … }`** — propagates closure mutations to caller. **`do { … }`** without `--env` does not.
 

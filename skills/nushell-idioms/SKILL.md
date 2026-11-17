@@ -6,7 +6,7 @@ description: >
   Use whenever writing, reading, debugging or running Nushell (`.nu` and
   `.nuon` files, the `nu_exec`/`nu_repl` tools) or converting shell code to
   nu.
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" *)
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
   version: 0.2.1
@@ -22,7 +22,7 @@ traps and their idiomatic replacements.
 
 Known bugs and option-dependent behavior for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms 2>/dev/null || true`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 
@@ -62,17 +62,17 @@ The checks made when the value arrives depend on the
 |---|---|
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
-| `grep pattern file` | `open file \| where $it =~ "pattern"` (or `find "pattern"`) |
-| `awk '{print $2}'` | `lines \| str trim \| split column --regex '\s+' \| get column1` (columns count from `column0`) |
+| `grep pattern file` | `open file \| lines \| where $it =~ "pattern"` (or `find "pattern"`) |
+| `awk '{print $2}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
 | `sed 's/a/b/'` | `str replace 'a' 'b'` |
-| `cat f \| head -n 5` | `open f \| first 5` |
+| `cat f \| head -n 5` | `open f \| lines \| first 5` |
 | `wc -l < file` | `open file \| lines \| length` |
 | `arr=(a b c); echo "${arr[1]}"` | `let arr = [a b c]; $arr.1` |
 | `[[ -n "$x" ]]` | `($x \| is-not-empty)` |
 | `if [[ "$x" == "y" ]]; then …; fi` | `if $x == "y" { … }` |
 | `read -r line` | (rare; nu is non-interactive by default in scripts) |
 | `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
-| `cmd 2>/dev/null` | `cmd e>\| ignore` (drop stderr); `cmd \| complete` to capture both for inspection |
+| `cmd 2>/dev/null` | `(cmd \| complete).stdout` (stdout only); `cmd e>\| ignore` prints stdout but returns nothing; `cmd \| complete` keeps both for inspection |
 | `set -e` | (built-in; pipelines stop on first error unless `try` wraps) |
 
 ## Anti-Patterns: Common Mistakes
@@ -104,7 +104,7 @@ Commands use closures
 (e.g. `[par-]each`, `items`, `reduce`, `upsert`)
 and, by default, do not propagate environment changes.
 
-- `collect` with `--keep-env`/`do` with `--env` will enable `$env` propagation.
+- `do --env` (or `def --env` for a command) enables `$env` propagation; `collect --keep-env` does not.
 
 ```nu
 # anti-pattern — `each` runs a closure, not a block

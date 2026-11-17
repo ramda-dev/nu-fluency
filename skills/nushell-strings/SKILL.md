@@ -21,7 +21,7 @@ Syntax reference: [cheat-sheet → Strings](../nushell-idioms/references/cheat-s
 
 ### 1. `parse '{name} {pattern}'` — typed extraction
 
-The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is `awk '{print $2}'` or a regex with named groups, `parse` is the right tool — chain `get` or `select` to extract from the returned table. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. A common idiom: `ls | get name | parse '{stem}.{ext}'` to split filenames.
+The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is `awk -F: '{print $2}'` on a fixed delimiter or a regex with named groups, `parse` is the right tool (for whitespace-separated fields, where runs of spaces vary, use `split column --regex '\s+'`) — chain `get` or `select` to extract from the returned table. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. A common idiom: `ls | get name | parse '{stem}.{ext}'` to split filenames.
 
 ### 2. The `str` namespace
 

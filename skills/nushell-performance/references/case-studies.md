@@ -47,7 +47,8 @@ skill, under Patterns).
 - A builtin `match` for a closure-taking dispatch helper: 9.4 ms to 2.4 ms across one completer.
 - Re-measured on nu 0.117.1-nightly: `describe | str replace --regex '<.*' ''` for
   `describe | split words | first` is 0.36 ms to 0.005 ms. Over 19 value shapes the two forms differ on one,
-  `cell-path`, which `split words` reads as `cell` and the `str replace` does not. Where an arm matches or
+  `cell-path`, which `split words` reads as `cell` and the `str replace` does not. They also differ on streams,
+  whose description has no `<` (`byte stream`, `table (stream)`). Where an arm matches or
   prints the name, the exact drop-in is `describe | parse --regex '^(?<type>\w*)' | get 0.type` (0.014 ms
   against 0.005 for the `str replace` and 0.36 for `split words`).
 
@@ -58,6 +59,8 @@ skill, under Patterns).
 - A harness that failed to parse wrote two empty files, and `cmp` called them identical.
 
 ## Timing
+
+Measured on nu 0.117.1-nightly.
 
 - An old-versus-old control read +4%. Drift between two separate `probe time` runs is larger than most gains;
   other benchmarks on the machine swing a result by 10 points or more.

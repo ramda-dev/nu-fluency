@@ -5,10 +5,11 @@ description: >
   `probe hot`, count closure-command entries, then apply the cheapest
   pattern that fits. Use when nu code feels slow or is about to be
   optimised, benchmarked or profiled (prompt hooks, Tab completers,
-  `export-env` startup, per-element helpers, `par-each`, `debug profile`,
-  `std bench`), or when judging a claimed speed-up.
+  `export-env` startup, per-element helpers, choosing between `for` and
+  `each`/`where`/`reduce`/`any` for speed, `par-each`, `debug profile`,
+  `timeit`, `std bench`), or when judging a claimed speed-up.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" *)
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
   version: 0.1.1
@@ -16,12 +17,13 @@ metadata:
 
 # Nushell Performance
 
-In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by
-what each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs two
-to three times what entering a `for`, an `if` or a custom `def` costs, whatever the input size; per element, a loop
-body costs a little over half what the same closure body does, but a loop that builds a list copies it on
-every step. And in a shell library most wall time is not nu code at all: it is one external program or one
-builtin that enumerates the system. So profile first, count entries second, edit last.
+In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by what
+each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about twice (up
+to three times for `record each` / `record where`) what entering a `for`, an `if` or a custom `def` costs,
+whatever the input size; per element, a loop body costs a little over half what the same closure body does,
+but a loop that builds a list copies it on every step. And in a shell library most wall time is not nu code at
+all: it is one external program or one builtin that enumerates the system. So profile first, count entries
+second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
@@ -35,7 +37,7 @@ use ${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu
 
 Known bugs for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance 2>/dev/null || true`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 ## Cost model
 
@@ -44,9 +46,9 @@ Three tiers of entry cost:
 - **Cheapest, about 3 us**: `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, and most
   closure-free builtins, including `update` / `insert` / `default` / `group-by` / `sort-by` given a value or a
   column name.
-- **About two to three times that**: the commands that call a closure for each element (`each`, `where`, `any`, `all`,
-  `reduce`, `items`, `take while`, `record each`, `record where`), and `update` / `insert` / `default` /
-  `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}` and
+- **About two to three times that**: the commands that call a closure for each element (`each`, `where`,
+  `any`, `all`, `reduce`, `items`, `take while`, `record each`, `record where`), and `update` / `insert` /
+  `default` / `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}` and
   `collect {closure}` stay in the cheapest tier.
 - **A budget, not a style**: `tee` and `interleave` (about 70 us) and `par-each` (about 0.83 ms).
 
@@ -64,7 +66,8 @@ What follows:
   only to a scalar, and prefer a builtin (`math sum`, `str join`) when one exists. `reduce` is no cheaper than
   `for` with `mut` either; replace state carried between iterations with two stateless passes.
 - To build a record from rows, map to `{k v}` rows with `each` and finish with
-  `transpose --ignore-titles --header-row --as-record`, not `insert` in a fold.
+  `transpose --ignore-titles --header-row --as-record | default --empty {}`, not `insert` in a fold. Without the
+  `default`, empty input gives `[]`, not `{}`; a repeated key keeps its first value, where `insert` raises.
 - The slow shape is a closure command entered many times: inside another closure, inside a loop, or inside a
   function that itself runs per element, per prompt, per keypress or at shell startup.
 - A closure-free builtin beats both styles.
@@ -98,10 +101,11 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
 2. `probe hot {|| <call> }`: self time per source line, plus calls and inclusive time per callee. An external
    or a heavy builtin shows up here at once, which usually ends the investigation. When the function owns
    only a few percent of its trigger, stop: halving 5% of a Tab is 2.5% of the Tab.
-3. `probe entries {|| <call> }`: exact closure-command entries of one run, by command. Entries times about 3 us is
-   the most that rewriting them as loops can remove; entries made per element usually matter more than
-   their count suggests, because each one also pays its body. The count cannot show one entry getting
-   cheaper: `par-each` to `each` reads 1 and 1 while the run drops by most of a millisecond.
+3. `probe entries {|| <call> }`: exact closure-command entries of one run, by command. Entries times about
+   3 us (6 us for `record each` / `record where`) is the most that rewriting them as loops can remove; entries
+   made per element usually matter more than their count suggests, because each one also pays its body. The
+   count cannot show one entry getting cheaper: `par-each` to `each` reads 1 and 1 while the run drops by most
+   of a millisecond.
 4. Build the workload from literal data shaped like the real input, never from live user data. When the real
    input is empty or tiny, that is the workload: measure the guard path and stop, rather than tuning for a
    size nobody has. When input size varies, measure several sizes: a `for` with `++=` rewrite of a completion
@@ -163,14 +167,15 @@ Try 1 to 5 in that order. 6 and 7 apply wherever `probe hot` points at them.
 7. **A cheaper builtin for the same job**, when `probe hot` puts the time on one closure-free line:
    `describe | str replace --regex '<.*' ''` for `describe | split words | first` (0.36 ms to 0.005 ms), a builtin
    `match` for a closure-taking dispatch helper. `probe entries` reads 0 to 0 for such a change: only the
-   self-time view finds it. Check the arms first: the two `describe` forms differ on one value shape, and the
+   self-time view finds it. Check the arms first: the `str replace` form differs from `split words` on
+   `cell-path` and on streams (`byte stream`, `table (stream)`), and the
    [case studies](references/case-studies.md#a-cheaper-builtin) give the exact drop-in.
 
 Patterns 3 and 4 together, on a check that runs once per rule of a validator (sparse input 5.5 ms to 3.5 ms):
 
 ```nu
 # before, once per rule:   $dead | any {|d| $at == $d or ($at starts-with $"($d).") }
-# A `for`, not `any`: entering a closure command costs two to three times what the loop does, once per rule.
+# A `for`, not `any`: entering a closure command costs about twice what the loop does, once per rule.
 def under [at: string ...dead: string]: nothing -> bool {
   for d in $dead { if $at == $d or ($at starts-with $"($d).") { return true } }
   false

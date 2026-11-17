@@ -45,7 +45,8 @@ difference) before assuming a body is cheap.
 
 - Each nested entry of a closure command costs about 3 us per outer element in either style, four to seven
   times the outer body.
-- A closure-free builtin costs half the entry cost of a closure command and a fifteenth or less per element.
+- A closure-free builtin costs a half to a third of the entry cost of a closure command and a fifteenth
+  or less per element.
 - `$list ++= [x]` inside a loop: mapping 1000 elements, `each` 0.6 ms, `for` with `++=` 4.7 ms, `for` with
   `append` 21 ms. The two tie up to about 10 elements; from 20 on `each` wins, by 2.7x at 200.
 - `reduce --fold [] { … append … }` at 5,000 items took about a second against 3.9 ms for `each --flatten`.

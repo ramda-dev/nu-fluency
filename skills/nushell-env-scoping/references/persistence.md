@@ -16,11 +16,9 @@ for entry in ($__persisted | transpose key value) {
 # Save
 $env
 | reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE
-| items { |k, v| try { $v | to json --raw | ignore; {($k): $v} } catch { null } }
-| where $it != null
-| into record
+| record each {|k v| try { $v | to json --raw | ignore; [$k $v] } catch { null } }
 | to json --raw
 | save --force --raw $path
 ```
 
-It reuses two patterns from the skill: per-key `for`+`try` on load, and `items`+`where`+`into record` on save.
+Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).

@@ -1,6 +1,6 @@
-# Re-measures the figures in skills/nushell-performance/references/cost-model.md (which the
-# nushell-performance, nushell-records and nushell-control-flow skills cite), including the closure
-# forms added in nu 0.116 and 0.117, and prints them as one NUON record.
+# Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, the case-studies.md
+# items marked as re-measured, debug-profile.md) and the row-condition pitfalls in nushell-control-flow,
+# including the closure forms added in nu 0.116 and 0.117, and prints them as one NUON record.
 # Run from the repository root: nu --no-config-file bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
@@ -212,7 +212,7 @@ let records_ms = section records_ms {
   }
 }
 
-# nushell-control-flow claim: building a list with reduce is quadratic.
+# Loop shapes (cost-model.md#loop-shapes): building a list with reduce is quadratic.
 let control_flow_ms = section control_flow_ms {
   let big = do $ints 5000
   {
@@ -243,7 +243,7 @@ let closure_free_ms = section closure_free_ms {
   }
 }
 
-# The skill times par-each from fresh processes; this repeats the 1741-element case in one process to see
+# cost-model.md#par-each times par-each from fresh processes; this repeats the 1741-element case in one process to see
 # whether the unordered form's slowdown on the XPS run is stable or a one-off.
 let par_each_repeat = section par_each_repeat {
   let s = do $ints 1741

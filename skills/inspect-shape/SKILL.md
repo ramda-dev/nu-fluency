@@ -26,4 +26,6 @@ and `value` the value itself, cut to the first three rows of a list or table
 A closure piped to `shape` is run (with no arguments) and its result
 described, so `shape` cannot describe a closure value itself, and it runs any
 side effects the closure has. An error the closure raises is not caught: it
-ends the call as that error.
+ends the call as that error. A closure with a required parameter fails with
+`missing_parameter`, and a closure that returns a closure has that one run as
+well.

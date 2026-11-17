@@ -23,7 +23,5 @@ export def main [
   let detail = $value | describe --detailed
   let shown = if $detail.type == list { $value | first $max_rows } else { $value }
   {type: $detail.detailed_type length: $detail.length? value: $shown}
-  | items {|k v| if $v != null { [$k $v] } }
-  | compact
-  | into record
+  | record where value != null
 }

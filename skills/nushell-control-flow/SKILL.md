@@ -7,7 +7,7 @@ description: >
   Use when writing loops, filters, maps, folds, branches or error paths in
   nu.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" *)
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
   version: 0.2.1
@@ -21,7 +21,7 @@ Syntax reference: [cheat-sheet → Control Flow](../nushell-idioms/references/ch
 
 Known bugs and option-dependent behavior for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow 2>/dev/null || true`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 ## Iteration: pick the right tool
 
@@ -31,10 +31,10 @@ Known bugs and option-dependent behavior for the running nu, if any:
 | `for x in $list { … }` | Nothing (side-effecting) | **Yes** | You're mutating state per iteration |
 | `where <row condition>` | Filtered list/table | **No** | Predicate filter (`where size > 1kb`, `where $it > 2`) |
 | `reduce -f INIT { \|x, acc\| … }` | Single accumulated value | **No** | Folding into one value |
-| `any { \|x\| … }` | Bool | **No** | "Is there any element matching?" |
-| `all { \|x\| … }` | Bool | **No** | "Do all elements match?" |
-| `take while { \|x\| … }` | Prefix of list | **No** | Slice up to first failing |
-| `skip while { \|x\| … }` | Suffix of list | **No** | Slice from first failing |
+| `any <row condition>` | Bool | **No** | "Is there any element matching?" |
+| `all <row condition>` | Bool | **No** | "Do all elements match?" |
+| `take while <row condition>` | Prefix of list | **No** | Slice up to first failing |
+| `skip while <row condition>` | Suffix of list | **No** | Slice from first failing |
 | `enumerate` | List of `{index, item}` | **No** | When you need the index |
 | `items { \|k, v\| … }` (on records) | List of closure results | **No** | Iterating record entries |
 

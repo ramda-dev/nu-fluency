@@ -21,9 +21,16 @@ flag at its start or end:
 $ARGUMENTS
 ```
 
-Claude Code escapes a `!` at the start of a word when it substitutes the
-arguments, so `!=` arrives as `\!=`. Remove that backslash when you write the
-snippet into the heredoc.
+Claude Code escapes `!` when it substitutes the arguments: a `!` at the start
+of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a space is
+put between a backtick and an adjacent `!` (`` `a b`! `` arrives as
+`` `a b` ! ``). Undo both when you write the snippet into the heredoc.
+
+If no arguments were passed (the block above is empty or still shows the
+placeholder), lint the Nushell code you most recently wrote or ran. If the
+block holds only the path of a `.nu` file, lint that file: give its path to
+`nu-lint` in place of `--stdin` and the heredoc (inside WSL, convert it first
+with `wsl.exe --exec wslpath -u '<path>'`).
 
 ## Environment
 
@@ -35,7 +42,8 @@ snippet into the heredoc.
 If the native Nu-Lint installation path is an absolute path (not
 `not found`), follow the standard [procedure](#procedure).
 
-Else, if the WSL installation path is an absolute path, follow the standard
+Else, if the WSL installation path is an absolute path and the strict config
+path inside WSL is not `not found`, follow the standard
 [procedure](#procedure), but run the linter inside WSL with this command, the
 strict config path inside WSL found above in place of the placeholder:
 
@@ -79,9 +87,10 @@ Else, follow the [fallback](#fallback) instructions.
 ## Fallback
 
 1. Invoke the [`generate-diagnostics`](../../agents/generate-diagnostics.md) Task agent.
+   Pass it the snippet verbatim.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
-3. Present the diagnostics in a table with each row containing a message and a
-line/column reference
+3. Present the agent's findings as it returns them (quoted snippet, why, the
+   alternative), with its uncertainty note and install recommendation.
 
 ## Constraints
 
@@ -92,4 +101,5 @@ sensible fixes automatically and await confirmation for further edits.
 
 Else, present the diagnostics to the user without making any changes, and
 for each diagnostic, surface the output of `nu-lint --explain <rule>`
-(`wsl.exe --exec nu-lint --explain <rule>` when the linter runs inside WSL).
+(`wsl.exe --exec nu-lint --explain <rule>` when the linter runs inside WSL;
+on the fallback path, name the related rule instead).

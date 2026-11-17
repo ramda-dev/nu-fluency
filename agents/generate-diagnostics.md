@@ -11,8 +11,8 @@ tools: ["Read"]
 ## Role
 
 You are an experimental fallback
-agent. The authoritative tool for this job is `nu-lint`, whose
-deterministic community-maintained rules are organized into groups (`posix`,
+agent. The authoritative tool for this job is `nu-lint`, which
+organizes deterministic community-maintained rules into groups (`posix`,
 `idioms`, `parsing`, `dead-code`, `runtime-errors`, etc.) and emits typed
 diagnostics with auto-fixes. You are invoked only when `nu-lint` is not
 installed on the host. **You should explicitly recommend installing nu-lint
