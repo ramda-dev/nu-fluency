@@ -20,6 +20,8 @@
   [nushell-idioms negative "Write a Python script that reads a CSV file and prints its first column."]
   [nushell-modules positive "How should I lay out a Nushell module with a mod.nu that exports a few commands?"]
   [nushell-modules negative "In Nushell, how do I keep only the table rows whose size is over 1kb?"]
+  [nushell-performance positive "This Nushell loop over 50,000 rows takes several seconds. How do I find what's slow and speed it up?"]
+  [nushell-performance negative "In Nushell, how do I sort a table by two columns?"]
   [nushell-records positive "In Nushell, how do I rename the keys of a record and drop the fields whose value is null?"]
   [nushell-records negative "In Nushell, how do I retry an `http get` up to three times when it fails?"]
   [nushell-strings positive "In Nushell, how do I parse lines like `user=alice id=7` into a table with user and id columns?"]
