@@ -9,9 +9,9 @@ A plugin that helps Claude write [Nushell](https://github.com/nushell/nushell) (
 version | get version # >= 0.117.0
 # (the skills' preprocessing was tested on Claude Code 2.1.326)
 # 2. Add the plugin marketplace
-claude plugin marketplace add zaynram/code-marketplace
+claude plugin marketplace add zaynram/cowork-marketplace
 # 3. Install the `nu-fluency` plugin
-claude plugin install nu-fluency@ramda-code-marketplace
+claude plugin install nu-fluency@ramda-cowork-marketplace
 ```
 
 ## Background
