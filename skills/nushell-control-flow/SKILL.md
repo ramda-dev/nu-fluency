@@ -40,10 +40,10 @@ Known bugs and option-dependent behavior for the running nu, if any:
 
 **Rule**: if the loop body mutates `$env`, use `for`. Otherwise use the highest-level transform that fits: `each`/`where`/`reduce`/`any`/`all`/`take while`/`skip while`.
 
-Predicates are row conditions, not closures: `where name =~ $re`, `take until name == $x`, `any name == $n`, `all $it in $expected`. A column is named bare on the left of an operator; use `$it` for a scalar element or inside parentheses. A closure (`where {|r| … }`) is only for a predicate that needs more than one expression, or for the two cases a row condition misreads:
+Predicates are row conditions, not closures: `where name =~ $re`, `take until name == $x`, `any name == $n`, `all $it in $expected`. A column is named bare on the left of an operator; use `$it` for a scalar element or inside parentheses. A closure (`where {|r| … }`) is only for a predicate that needs more than one expression. Two cases a row condition misreads, each with its fix:
 
-- **A quoted string on the left of an operator is read as a column name**: `where bad and '.' not-in $it.at` fails with "Cannot find column '.'".
-- **A bare word on the right is a string**: `where old != new` compares the column `old` with the text "new", not with the column `new`. Write `where {|r| $r.old != $r.new }`.
+- **A quoted string on the left of an operator is read as a column name**: `where bad and '.' not-in $it.at` fails with "Cannot find column '.'". Put that comparison in parentheses: `where bad and ('.' not-in $it.at)`.
+- **A bare word on the right is a string**: `where old != new` compares the column `old` with the text "new", not with the column `new`. Write `where old != $it.new`.
 
 ### Cost
 
@@ -74,7 +74,7 @@ Pipeline input flows implicitly, and a bash reader's instincts about "nothing" a
 
 - **An empty block or `()` passes the input through.** `5 | if false { 1 } else { }` is `5`, and a `match` arm `=> ()` returns the match's input. An empty `else` is an identity, not "produce nothing"; to discard, write `null` or pipe to `ignore`.
 - **Inside a `match` arm, `$in` is the match's pipeline input, not the subject.** In `$p | match ($in | path type) { dir => (glob $"($in)/**") }` the arm's `$in` is the path. When both appear, bind the value first (`let p = …; match ($p | path type) { … }`).
-- **Only a block's first statement receives its input implicitly.** Later statements reach it through `$in`, but an `if` or `match` there can see the input in its condition and an empty `$in` in its body ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the input in the first statement (`let xs;` with no initializer binds it) or write `$in | if …`.
+- **Only a block's first statement receives its input implicitly.** Later statements reach it through `$in`, but an `if` or `match` there can see the input in its condition and an empty `$in` in a body written as a block, an `if` branch or a `match` arm in `{…}` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the input in the first statement (`let xs;` with no initializer binds it) or write `$in | if …`.
 - **`each` doubles as "apply if present"**: piped a scalar or record it runs the closure once and returns the bare result; piped `null` it skips the closure. Use it that way only where the value can never be a list.
 
 ## Bare words in arms

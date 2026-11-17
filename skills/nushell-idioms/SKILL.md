@@ -14,10 +14,11 @@ metadata:
 
 # Nushell Idioms
 
-Nushell is a **structural-data-first** shell: parse text into records, lists and tables once, transform them
-with pipelines, and render text only at the end. The biggest source of mistakes is reaching for bash patterns,
-whose text streams dominate training data and cloud intuition about nu. This skill names the common traps and
-their idiomatic replacements.
+Nushell is a **structural-data-first** shell: parse text into records, lists and
+tables once, transform them with pipelines, and render text only at the end. The
+biggest source of mistakes is reaching for bash patterns, whose text streams
+dominate training data and cloud intuition about nu. This skill names the common
+traps and their idiomatic replacements.
 
 Known bugs and option-dependent behavior for the running nu, if any:
 
@@ -46,9 +47,9 @@ Majority of the time, it's a transformation and does not need assignment.
 Two `let` forms exist and behave differently:
 
 - **Statement form** `let name: TYPE = <expr>`: the annotation is checked at
-parse time when the parser knows the expression's type (`let n: int = "a"` is a
-parse error), and when the value arrives otherwise (`from json`, `open`, an
-external).
+parse time when the parser can prove a mismatch (`let n: int = "a"` is a parse
+error), and when the value arrives otherwise (`from json`, `open`, an external,
+and some literals, such as `{}` for `record<x: int>`).
 - **Pipeline form** `<pipeline> | let name: TYPE`: the annotation is checked
 when the value arrives.
 
@@ -62,7 +63,7 @@ The checks made when the value arrives depend on the
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
 | `grep pattern file` | `open file \| where $it =~ "pattern"` (or `find "pattern"`) |
-| `awk '{print $2}'` | `split column " " \| get column1` (columns count from `column0`) |
+| `awk '{print $2}'` | `lines \| str trim \| split column --regex '\s+' \| get column1` (columns count from `column0`) |
 | `sed 's/a/b/'` | `str replace 'a' 'b'` |
 | `cat f \| head -n 5` | `open f \| first 5` |
 | `wc -l < file` | `open file \| lines \| length` |

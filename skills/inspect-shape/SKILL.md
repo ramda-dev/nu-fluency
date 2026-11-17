@@ -23,6 +23,7 @@ The result is a record. `type` is the detailed type (`list<int>`,
 and `value` the value itself, cut to the first three rows of a list or table
 (`shape --max-rows <n>` keeps more). A `nothing` result has `type` only.
 
-To describe what an expression returns when it may fail, pass it as a closure:
-`{|| <expression> } | shape` runs it, so a failure shows as its error rather
-than as an empty result.
+A closure piped to `shape` is run (with no arguments) and its result
+described, so `shape` cannot describe a closure value itself, and it runs any
+side effects the closure has. An error the closure raises is not caught: it
+ends the call as that error.

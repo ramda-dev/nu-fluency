@@ -33,7 +33,8 @@ entry counts from `debug profile` read 13 / 141 / 55 where matching command name
 
 ## Restructured state
 
-The section-tracking result restructured as two stateless passes took 4 ms against 117 for the loop.
+One library's section-tracking pass (state carried across 1200 items), restructured as two stateless passes,
+took 4 ms against 117 ms for the loop.
 
 ## Patterns 3 and 4 together
 

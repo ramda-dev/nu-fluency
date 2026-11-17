@@ -25,11 +25,11 @@ The strongest single tool. Takes a template with named captures and returns a **
 
 ### 2. The `str` namespace
 
-Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Tab-complete `str ` to discover the full set. `str upcase` and `str downcase` are deprecated; write `str uppercase` and `str lowercase`.
+Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Run `help str` to discover the full set. `str upcase` and `str downcase` are deprecated; write `str uppercase` and `str lowercase`.
 
 ### 3. The `from <format>` family
 
-`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip; `to nuon --serialize` round-trips closures too.
+`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip. `to nuon --serialize` writes a closure as its source text, which `from nuon` reads back as a string, not a closure.
 
 ### 4. Interpolation: `$"…"` and `$'…'`
 
@@ -41,7 +41,7 @@ The `$` prefix turns either quote form into an interpolation. Inside `(…)`, fu
 
 ## Encoding conversion
 
-`encode utf-8` and `decode utf-8` convert between strings and binary; `encode base64` / `decode base64` handle base64 (both produce/consume strings — chain `decode utf-8` after `decode base64` to recover text from base64-encoded bytes).
+`encode utf-8` and `decode utf-8` convert between strings and binary; `encode base64` / `decode base64` handle base64 (`encode base64` returns a string and `decode base64` returns binary, so chain `decode utf-8` after `decode base64` to recover text).
 
 ## Regex
 

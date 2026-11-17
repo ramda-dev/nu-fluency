@@ -25,8 +25,8 @@
     kind: option
     skills: [nushell-idioms]
     option: {name: enforce-runtime-annotations enabled: false}
-    symptom: 'a `let` annotation is not checked against a value whose type is only known at runtime (the pipeline form `… | let x: T`, or `let x: T = …` fed by `from json`, `open` or an external), so a value of another type binds silently; only a type the parser can see is still checked (`let x: int = "a"` fails)'
-    workaround: 'validate dynamically typed input explicitly (`describe`, or convert with `into <type>`), or turn the option back on'
+    symptom: 'a `let` annotation is still checked where the parser can prove a mismatch (`let x: int = "a"` fails), but every other check is a runtime check and is skipped, so a value of another type binds silently: an empty record for `record<x: int>`, a mixed list for `list<string>`, or a value from `from json`, `open`, an external or the pipeline form `… | let x: T`'
+    workaround: 'check the type yourself with `describe` where it matters, or turn the option back on'
     repro: "let y: int = ('[1]' | from json); $y | describe"
   }
   {
@@ -36,8 +36,8 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`hide-env` does nothing once a `do --env` or `def --env` call has run earlier in the same block or in a block that encloses it, so moving it into a helper does not help: the variable stays set'
-    workaround: 'run externals that must not see a variable under `with-env {VAR: null}` or `env -i`, and bind the value before any `--env` call'
+    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block (the one running `hide-env`, or one enclosing it); calling `hide-env` from a `def --env` helper does not help'
+    workaround: 'run `hide-env` before any `--env` call in that block, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i`'
     repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
     upstream: null
   }
@@ -60,7 +60,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: "in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but the body's `$in` is empty"
+    symptom: "in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but a body written as a block (an `if` branch, or a `match` arm in `{…}`) gets an empty `$in`"
     workaround: 'bind the input first (`let xs = $in`), or write `$in | if ($in | …) { … }`'
     repro: '[1 2] | do { let y = 3; if ($in | is-empty) { "e" } else { $in | length } }'
     upstream: null
@@ -84,8 +84,8 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`std/bench` writes terminal escape codes into its output, so the result is not clean structured data'
-    workaround: "time with `timeit` in a loop, or the probe kit's `probe time`, when the numbers feed further code"
+    symptom: "`std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; the returned record itself is clean"
+    workaround: "use the record inside nu (`let r = bench {…}`), or time with `timeit` or the probe kit's `probe time` when another program parses the output"
     repro: 'use std/bench; bench { 1 } --rounds 5 | to nuon'
     upstream: null
   }

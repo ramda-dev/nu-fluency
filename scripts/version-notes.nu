@@ -9,6 +9,10 @@
 #
 # The per-skill form is injected into SKILL.md bodies, so it stays one short line when
 # no note applies and never fails: a failing injected command aborts the whole skill.
+# It runs in a fresh process, which sees each experimental option at its default
+# whatever the user's own shell sets, so an option note is printed as a condition
+# for every nu that has the option, and stated as fact when the default is the
+# setting it warns about.
 
 const DATA = path self version-notes.nuon
 const REFERENCE = path self ../skills/nushell-idioms/references/nushell-diagnostics.md
@@ -34,7 +38,9 @@ def older [a: string b: string]: nothing -> bool {
   if ($diff | is-empty) { false } else { $diff.0.0 < $diff.0.1 }
 }
 
-# The notes that apply to the running nu, with the reason for each.
+# The notes that apply to the running nu, with the reason for each. An option note
+# applies when the running nu has the option; `default` says whether the option's
+# default here is the setting the note warns about.
 def applicable [skill: string]: nothing -> table {
   let running = version | get version
   let options = debug experimental-options | select identifier enabled
@@ -42,7 +48,7 @@ def applicable [skill: string]: nothing -> table {
     match $note.kind {
       option => {
         let setting = $options | where identifier == $note.option.name | get enabled.0?
-        if $setting == $note.option.enabled { $note | insert $.stale false }
+        if $setting != null { $note | insert $.stale false | insert $.default ($setting == $note.option.enabled) }
       }
       diagnostic => {
         let affected = (not (older $running $note.since)) and ($note.until == null or (older $running $note.until))
@@ -58,7 +64,12 @@ def bullet [running: string]: record -> string {
   match $note.kind {
     option => {
       let state = if $note.option.enabled { 'on' } else { 'off' }
-      $"- **`($note.option.name)` is ($state)**: ($note.symptom). Workaround: ($note.workaround)."
+      let lead = if $note.default {
+        $"`($note.option.name)` is ($state) by default in this nu"
+      } else {
+        $"If `($note.option.name)` is ($state) in the shell that runs your code \(`debug experimental-options` shows it\)"
+      }
+      $"- **($lead)**: ($note.symptom). Workaround: ($note.workaround)."
     }
     diagnostic => {
       let unchecked = if $note.stale { $", not yet checked on ($running)" } else { '' }
@@ -98,8 +109,8 @@ def reference []: nothing -> string {
     ''
     'Unresolved Nushell bugs that the skills work around. "Since" is the oldest version'
     'that reproduces the bug (0.114.1 was the oldest checked), "Reproduced" the newest,'
-    'and "Fixed in" the first version without it. Skills that load this plugin print'
-    'the rows that apply to the running nu.'
+    'and "Fixed in" the first version without it. The skills in this plugin print,'
+    'when they load, the rows that apply to the running nu.'
     ''
     '| Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |'
     '|---|---|---|---|---|---|---|---|'
@@ -108,8 +119,9 @@ def reference []: nothing -> string {
     '## Experimental options'
     ''
     'Behavior the skills describe with the option at its default. These notes apply'
-    'only when the running nu has the option set the other way'
-    '(`debug experimental-options` lists the settings).'
+    'only when the shell that runs the code has the option set the other way'
+    '(`debug experimental-options` lists the settings); the skills print them as a'
+    'condition, since they cannot see the settings of the shell you use.'
     ''
     '| Setting | Symptom | Repro | Workaround |'
     '|---|---|---|---|'
@@ -135,7 +147,7 @@ def 'main render' [--write]: nothing -> any {
 
 # Fail when the reference file does not match the data file.
 def 'main check' []: nothing -> nothing {
-  if (open --raw $REFERENCE) != (reference) {
+  if (open --raw $REFERENCE | str replace --all "\r\n" "\n") != (reference) {
     error make --unspanned {msg: 'nushell-diagnostics.md is stale; run `render --write`'}
   }
 }

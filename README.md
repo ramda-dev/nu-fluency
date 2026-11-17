@@ -109,8 +109,6 @@ hover info, and auto-fixes any time it edits a Nushell file.
 — (entry point) deep syntax lookup reference
 ([`cheat-sheet.md`](skills/nushell-idioms/references/cheat-sheet.md)),
 `bash` → `nu` equivalents, pointers to nu-lint.
-- **`/inspect-shape <expr>`**
-— runs `<expr>` through `nu_exec` and returns its detailed type, length and first rows. Structural intuition.
 - **`/env-snapshot [keys...]`**
 — `$env | select --optional <keys>` with sensible defaults.
 - **`/audit-pipeline <pipeline>`**
@@ -120,6 +118,9 @@ hover info, and auto-fixes any time it edits a Nushell file.
 
 #### Model-Only
 
+- **`inspect-shape`**
+— runs an expression through `nu_exec` and returns its detailed type, length
+and first rows. Structural intuition.
 - **`nushell-records`**
 — records, tables, cell paths, `record each` / `record where`.
 - **`nushell-env-scoping`**
@@ -140,8 +141,9 @@ and behavior that depends on an experimental option. The idioms, control-flow,
 env-scoping and performance skills run `scripts/version-notes.nu` when they load
 and show only the notes that apply to the installed `nu`; the full table is
 [`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
-After editing the data, run `nu --no-config-file scripts/version-notes.nu render --write`
-(`check` fails when the table is stale).
+After editing the data, run
+`nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
+when the table is stale).
 
 ### Hooks
 

@@ -4,24 +4,25 @@
 
 Unresolved Nushell bugs that the skills work around. "Since" is the oldest version
 that reproduces the bug (0.114.1 was the oldest checked), "Reproduced" the newest,
-and "Fixed in" the first version without it. Skills that load this plugin print
-the rows that apply to the running nu.
+and "Fixed in" the first version without it. The skills in this plugin print,
+when they load, the rows that apply to the running nu.
 
 | Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |
 |---|---|---|---|---|---|---|---|
-| hide-env-after-env-call | `hide-env` does nothing once a `do --env` or `def --env` call has run earlier in the same block or in a block that encloses it, so moving it into a helper does not help: the variable stays set | `$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }` | run externals that must not see a variable under `with-env {VAR: null}` or `env -i`, and bind the value before any `--env` call | 0.114.1 | 0.117.0 | open |  |
+| hide-env-after-env-call | `hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block (the one running `hide-env`, or one enclosing it); calling `hide-env` from a `def --env` helper does not help | `$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }` | run `hide-env` before any `--env` call in that block, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i` | 0.114.1 | 0.117.0 | open |  |
 | try-escapes-under-ignore | `try`/`catch` inside a command does not catch when the command's output is piped to `ignore`: the error escapes | `def f [] { try { error make {msg: inner} } catch { "caught" } }; f \| ignore` | bind the result (`let _ = f`), or end the command's body with `null` | 0.114.1 | 0.117.0 | open |  |
-| later-statement-in | in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but the body's `$in` is empty | `[1 2] \| do { let y = 3; if ($in \| is-empty) { "e" } else { $in \| length } }` | bind the input first (`let xs = $in`), or write `$in \| if ($in \| …) { … }` | 0.114.1 | 0.117.0 | open |  |
+| later-statement-in | in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but a body written as a block (an `if` branch, or a `match` arm in `{…}`) gets an empty `$in` | `[1 2] \| do { let y = 3; if ($in \| is-empty) { "e" } else { $in \| length } }` | bind the input first (`let xs = $in`), or write `$in \| if ($in \| …) { … }` | 0.114.1 | 0.117.0 | open |  |
 | par-each-unordered-slower | unordered `par-each` runs slower than `par-each --keep-order` on the same input, and can be slower than plain `each` | `let xs = 1..1741 \| each { $in }; [(timeit { $xs \| par-each { $in * 2 } }) (timeit { $xs \| par-each --keep-order { $in * 2 } })]` | pass `--keep-order` even when order does not matter | 0.114.1 | 0.117.1-nightly | open |  |
-| bench-writes-escapes | `std/bench` writes terminal escape codes into its output, so the result is not clean structured data | `use std/bench; bench { 1 } --rounds 5 \| to nuon` | time with `timeit` in a loop, or the probe kit's `probe time`, when the numbers feed further code | 0.114.1 | 0.117.0 | open |  |
+| bench-writes-escapes | `std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; the returned record itself is clean | `use std/bench; bench { 1 } --rounds 5 \| to nuon` | use the record inside nu (`let r = bench {…}`), or time with `timeit` or the probe kit's `probe time` when another program parses the output | 0.114.1 | 0.117.0 | open |  |
 
 ## Experimental options
 
 Behavior the skills describe with the option at its default. These notes apply
-only when the running nu has the option set the other way
-(`debug experimental-options` lists the settings).
+only when the shell that runs the code has the option set the other way
+(`debug experimental-options` lists the settings); the skills print them as a
+condition, since they cannot see the settings of the shell you use.
 
 | Setting | Symptom | Repro | Workaround |
 |---|---|---|---|
 | `pipefail` off | an external that fails mid-pipeline (`^false \| lines`) does not stop the pipeline or reach `catch`; only the last command decides the outcome | `try { ^false \| lines \| length; "no error" } catch { "error" }` | capture the external with `complete` and test its `exit_code` |
-| `enforce-runtime-annotations` off | a `let` annotation is not checked against a value whose type is only known at runtime (the pipeline form `… \| let x: T`, or `let x: T = …` fed by `from json`, `open` or an external), so a value of another type binds silently; only a type the parser can see is still checked (`let x: int = "a"` fails) | `let y: int = ('[1]' \| from json); $y \| describe` | validate dynamically typed input explicitly (`describe`, or convert with `into <type>`), or turn the option back on |
+| `enforce-runtime-annotations` off | a `let` annotation is still checked where the parser can prove a mismatch (`let x: int = "a"` fails), but every other check is a runtime check and is skipped, so a value of another type binds silently: an empty record for `record<x: int>`, a mixed list for `list<string>`, or a value from `from json`, `open`, an external or the pipeline form `… \| let x: T` | `let y: int = ('[1]' \| from json); $y \| describe` | check the type yourself with `describe` where it matters, or turn the option back on |

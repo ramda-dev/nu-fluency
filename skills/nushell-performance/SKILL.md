@@ -17,15 +17,17 @@ metadata:
 # Nushell Performance
 
 In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by
-what each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about
-twice what entering a `for`, an `if` or a custom `def` costs, whatever the input size; per element, a loop
+what each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs two
+to three times what entering a `for`, an `if` or a custom `def` costs, whatever the input size; per element, a loop
 body costs a little over half what the same closure body does, but a loop that builds a list copies it on
 every step. And in a shell library most wall time is not nu code at all: it is one external program or one
 builtin that enumerates the system. So profile first, count entries second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
-absolutes with `probe calibrate` after a nu upgrade or on another machine.
+absolutes with `probe calibrate` after a nu upgrade or on another machine. Figures inline below come from the
+same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.115.2-nightly (the
+[case studies](references/case-studies.md) mark each one re-run since).
 
 ```nu
 use ${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu
@@ -42,7 +44,7 @@ Three tiers of entry cost:
 - **Cheapest, about 3 us**: `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, and most
   closure-free builtins, including `update` / `insert` / `default` / `group-by` / `sort-by` given a value or a
   column name.
-- **About twice that**: the commands that call a closure for each element (`each`, `where`, `any`, `all`,
+- **About two to three times that**: the commands that call a closure for each element (`each`, `where`, `any`, `all`,
   `reduce`, `items`, `take while`, `record each`, `record where`), and `update` / `insert` / `default` /
   `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}` and
   `collect {closure}` stay in the cheapest tier.
@@ -108,7 +110,9 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
    the common one too.
 5. Apply the first pattern below that fits.
 6. `probe compare {|| <old> } {|| <new> }`. It refuses to time unless both closures return equal values, then
-   times them old-new-new-old and reports `gain_pct` and `noise_pct`.
+   times them old-new-new-old and reports `gain_pct` and `noise_pct`. Never compare two separate
+   `probe time` runs: drift between them is larger than most gains. Near the 10% bar, also run
+   `probe compare {|| <old> } {|| <old> }` as a control.
 7. Run the repository's gates. `nu-lint` caps nesting at depth 4, which is why pattern 4 extracts a `def`.
 
 Keep a change only when all four hold:
@@ -166,7 +170,7 @@ Patterns 3 and 4 together, on a check that runs once per rule of a validator (sp
 
 ```nu
 # before, once per rule:   $dead | any {|d| $at == $d or ($at starts-with $"($d).") }
-# A `for`, not `any`: entering a closure command costs about twice what the loop does, once per rule.
+# A `for`, not `any`: entering a closure command costs two to three times what the loop does, once per rule.
 def under [at: string ...dead: string]: nothing -> bool {
   for d in $dead { if $at == $d or ($at starts-with $"($d).") { return true } }
   false
@@ -184,4 +188,4 @@ if ($dead | is-not-empty) and (under $r.at ...$dead) { continue }
 - [Reading `debug profile` directly](references/debug-profile.md): read when `probe hot` and `probe entries` are
   not enough.
 - Don't time with `std bench`: under `nu -l` it reported 962 us for one `each` that a plain timing loop put at
-  55 us, and it writes escape codes into its output. Use `probe time`.
+  55 us, and it prints a terminal progress escape to stdout. Use `probe time`.

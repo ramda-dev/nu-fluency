@@ -58,7 +58,7 @@ Every semantic claim below was checked on 0.116.2-nightly.32.
 ## D. Path idioms
 
 11. **`path basename --replace` / `path dirname --replace` for sibling paths** —
-    `$nu.data-dir | path basename --replace <dir>/modules/test` (several seams, conf/machine.nu). Reads as string surgery;
+    `$nu.data-dir | path basename --replace <dir>/modules/test` (several seams, conf/machine.nu; `<dir>` replaces the original path). Reads as string surgery;
     the intent is "sibling of data-dir". `path dirname | path join <dir> modules test` says it directly. ★
 12. **`path self` in const/`use` positions** with relative arguments (`path self ../..`, `export use (path self ..)`).
     Clear once known; the parse-time-only nature isn't obvious. ★

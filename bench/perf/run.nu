@@ -1,6 +1,6 @@
-# Re-measures the figures in skills/nushell-performance/SKILL.md, plus the performance claims in the
-# nushell-records and nushell-control-flow skills and the closure forms added in nu 0.116 and 0.117,
-# and prints them as one NUON record.
+# Re-measures the figures in skills/nushell-performance/references/cost-model.md (which the
+# nushell-performance, nushell-records and nushell-control-flow skills cite), including the closure
+# forms added in nu 0.116 and 0.117, and prints them as one NUON record.
 # Run from the repository root: nu --no-config-file bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
@@ -194,7 +194,7 @@ let nested_per_element_us = section nested_per_element_us {
   }
 }
 
-# nushell-records claims: 5,000 fields.
+# Record transforms (cost-model.md#record-transforms): 5,000 fields.
 let records_ms = section records_ms {
   let rec = 1..5000 | each {|i| [$'k($i)' $i] } | into record
   let keys = $rec | columns

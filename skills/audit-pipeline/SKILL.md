@@ -8,9 +8,9 @@ shell: bash
 
 # Audit Pipeline
 
-The `!`-executed probes and the `$ARGUMENTS` substitution below run once at
-invocation, like a slash command's preprocessing — this is not a recurring
-hook.
+The `!`-executed probes and the argument substitution in the
+[snippet](#snippet) run once at invocation, like a slash command's
+preprocessing; this is not a recurring hook.
 
 ## Snippet
 
@@ -21,6 +21,10 @@ flag at its start or end:
 $ARGUMENTS
 ```
 
+Claude Code escapes a `!` at the start of a word when it substitutes the
+arguments, so `!=` arrives as `\!=`. Remove that backslash when you write the
+snippet into the heredoc.
+
 ## Environment
 
 - Nushell version: !`nu --version 2>/dev/null || echo 'not found'`
@@ -28,9 +32,10 @@ $ARGUMENTS
 - Nu-Lint WSL installation path: !`wsl.exe --exec which nu-lint 2>/dev/null || echo 'not found'`
 - Strict config path inside WSL: !`wsl.exe --exec wslpath -u '${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml' 2>/dev/null || echo 'not found'`
 
-If the native Nu-Lint installation path is a path (not `not found`), follow the standard [procedure](#procedure).
+If the native Nu-Lint installation path is an absolute path (not
+`not found`), follow the standard [procedure](#procedure).
 
-Else, if the WSL installation path is a path, follow the standard
+Else, if the WSL installation path is an absolute path, follow the standard
 [procedure](#procedure), but run the linter inside WSL with this command, the
 strict config path inside WSL found above in place of the placeholder:
 
@@ -44,6 +49,10 @@ Write `wsl.exe --exec` exactly, so the skill's permission rule covers it. The
 extra leading `/` stops Git Bash from rewriting the path into a Windows one;
 Linux reads `//work/…` as `/work/…`.
 Choose the heredoc delimiter as in the [procedure](#procedure).
+
+`wsl.exe --exec` runs its program without a shell, so neither probe nor
+command reads a shell profile: `nu-lint` is found only on the distribution's
+default `PATH`, not in a directory a profile adds (such as `~/.cargo/bin`).
 
 Else, follow the [fallback](#fallback) instructions.
 
@@ -78,8 +87,9 @@ line/column reference
 
 If diagnostics return with no warnings or errors, say so explicitly.
 
-If `$ARGUMENTS` does not contain the flag `--read-only`, apply sensible fixes
-automatically and await confirmation for further edits.
+If the arguments do not start or end with the flag `--read-only`, apply
+sensible fixes automatically and await confirmation for further edits.
 
 Else, present the diagnostics to the user without making any changes, and
-for each diagnostic, surface `nu-lint --explain <rule>` output.
+for each diagnostic, surface the output of `nu-lint --explain <rule>`
+(`wsl.exe --exec nu-lint --explain <rule>` when the linter runs inside WSL).

@@ -1,7 +1,7 @@
 # Reading `debug profile` directly
 
 Read this when `probe hot` and `probe entries` are not enough and you need the raw profile. Figures are from
-nu 0.117.1-nightly unless marked.
+nu 0.117.1-nightly on one WSL2 laptop with 22 CPUs unless marked.
 
 `debug profile --max-depth 30 --lines --duration-values {|| <call> }` returns one row per IR instruction with
 columns `depth id parent_id file line source pc instruction duration`. Other flags: `--spans`,

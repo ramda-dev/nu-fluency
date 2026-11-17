@@ -83,6 +83,11 @@ when you're confident. Examples:
 - "Not sure whether the `let` chain is intentional state-carrying or a missed pipeline."
 - "Did not review correctness, only idiom."
 
+### 3. Install recommendation
+
+One sentence recommending that the user install `nu-lint` for deterministic
+diagnostics with auto-fixes, so later reviews no longer need this fallback.
+
 ## Constraints
 
 - Do not refuse to review.

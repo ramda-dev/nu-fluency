@@ -98,8 +98,8 @@ let point: record<x: int, y: int> = {x: 1 y: 2}        # valid
 let point: record<x: int, y: int> = {x: foo y: bar}    # invalid
 # typecheck does not run on data outside of type definition
 let point: record<x: int, y: int> = {a: foo x: 3 y: 9} # valid
-# typecheck runs on all defined keys, so an empty record fails too
-let point: record<x: int, y: int> = {}                 # invalid
+# typecheck runs on all defined keys; an empty record fails at runtime
+let point: record<x: int, y: int> = {}                 # invalid (runtime)
 let point: record<x: int, y: int> = {x: 1}             # invalid
 let point: record<x: int, y: int> = {a: foo b: bar}    # invalid
 ```
@@ -168,8 +168,8 @@ let lines: list = [foo 1sec {x: 1} 30 null]            # valid
 # specifying types enables parser typechecking
 let lines: list<string> = [foo bar]                    # valid
 let lines: list<string> = [1 2 3 4]                    # invalid
-# a mixed list does not satisfy a typed list
-let lines: list<string> = [foo 1 bar 2]                # invalid
+# a mixed list does not satisfy a typed list (checked at runtime)
+let lines: list<string> = [foo 1 bar 2]                # invalid (runtime)
 ```
 
 ### Operations and Accessing
