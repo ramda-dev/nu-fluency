@@ -28,8 +28,9 @@ first, count entries second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
-entry costs with `probe calibrate` after a nu upgrade or on another machine (the repository's
-`bench/perf/run.nu` re-measures the rest of the 0.117.1 figures; its header lists what it skips). Figures inline below come from the
+entry costs with `probe calibrate` after a nu upgrade or on another machine
+(`${CLAUDE_PLUGIN_ROOT}/bench/perf/run.nu` re-measures the rest of the 0.117.1 figures; its header lists
+what it skips). Figures inline below come from the
 same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.115.2-nightly (the
 [case studies](references/case-studies.md) mark each one re-run since).
 
@@ -105,7 +106,10 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
    only a few percent of its trigger, stop: halving 5% of a Tab is 2.5% of the Tab.
 3. `probe entries {|| <call> }`: exact closure-command entries of one run, by command. Entries times about
    3 us (6 us for `record each` / `record where`, 8 for `generate`) is the most that rewriting them as loops can
-   remove; a `tee`, `interleave` or `par-each` entry is a budget item, so read those separately in `by`.
+   remove; a `tee`, `interleave` or `par-each` entry is a budget item, so subtract those (listed in `by`)
+   from `total` first. `total` counts only commands that always take a closure: `update`, `insert`,
+   `default`, `group-by`, `sort-by`, `collect`, `zip` and `str replace` are tallied in `closure-or-value`
+   whether given a closure or a value, so check the source before counting them.
    Entries made per element usually matter more than their count suggests, because each one also pays its
    body. The count cannot show one entry getting cheaper: `par-each` to `each` reads 1 and 1 while the run
    drops by most of a millisecond.

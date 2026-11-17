@@ -31,7 +31,7 @@
     option: {name: enforce-runtime-annotations enabled: false}
     symptom: 'a `let` or `mut` annotation is still checked where the parser can prove a mismatch (`let x: int = "a"` fails), but every other check is a runtime check and is skipped, so a value of another type binds silently: an empty record for `record<x: int>`, a mixed list for `list<string>`, or a value from `from json`, `open`, an external or the pipeline form `… | let x: T`'
     workaround: 'check the type yourself with `describe` where it matters, or turn the option back on'
-    repro: "let y: int = ('[1]' | from json); $y | describe"
+    repro: 'let y: int = ("[1]" | from json); $y | describe'
   }
   {
     id: hide-env-after-env-call
@@ -53,7 +53,7 @@
     reproduced: '0.117.0'
     until: null
     symptom: "`collect --keep-env {…}` does not pass the closure's `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables"
-    workaround: 'use `do --env` (or `def --env` for a command)'
+    workaround: 'use `do --env { let x = $in; … }` (`do` passes the input as `$in`, not as a closure parameter), or `def --env` for a command'
     repro: '[1 2 3] | collect --keep-env {|x| $env.LAST = 3 }; $env.LAST? == null'
     upstream: null
   }
@@ -96,7 +96,7 @@
   {
     id: par-each-unordered-slower
     kind: diagnostic
-    skills: [nushell-performance]
+    skills: [nushell-performance nushell-control-flow]
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null

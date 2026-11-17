@@ -55,7 +55,7 @@ strict config path inside WSL found above in place of the placeholder:
 
 ```bash
 wsl.exe --exec nu-lint --stdin --format compact --config "/<strict config path inside WSL>" <<'PIPELINE'
-<the snippet, verbatim>
+<the snippet, with the escaping undone>
 PIPELINE
 ```
 
@@ -88,7 +88,7 @@ Else, follow the [fallback](#fallback) instructions.
 
    ```bash
    nu-lint --stdin --format compact --config "${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml" <<'PIPELINE'
-   <the snippet, verbatim>
+   <the snippet, with the escaping undone>
    PIPELINE
    ```
 

@@ -3,7 +3,7 @@
 # `while` / `if` entries; the case-studies.md items re-measured on 0.117.1 except the stream shapes;
 # debug-profile.md except its 0.115.2 entry counts) and the pitfalls in nushell-control-flow (row conditions,
 # `[] | math sum`), and prints them as one NUON record.
-# Run from the repository root: nu --no-config-file bench/perf/run.nu
+# Run from any directory: nu --no-config-file <plugin root>/bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
 use ../../skills/nushell-performance/scripts/probe.nu

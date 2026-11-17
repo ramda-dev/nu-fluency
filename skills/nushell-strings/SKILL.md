@@ -53,6 +53,6 @@ Coming from bash, the instinct is "transform text → transform text → final t
 
 ## Pitfalls
 
-- **`echo`** in nu prints a list of values, not a string. Use `print` for stdout-side-effect, `$"…"` for interpolation.
+- **`echo`** in nu returns its arguments (one argument as itself, several as a list); it does not print. Use `print` for stdout side effects and `$"…"` for interpolation.
 - **`'…'` (plain single-quoted) is literal** — no escapes interpreted. For interpolation that still preserves backslashes, use the `$` prefix: `$'…'`. Plain double-quoted `"…"` interprets escapes; `$"…"` adds interpolation on top.
 - **`parse` returns a table**, not a record. Use `parse … | first | …` if you expect one match.

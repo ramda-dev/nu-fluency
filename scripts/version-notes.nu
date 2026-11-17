@@ -102,6 +102,8 @@ def notes []: nothing -> list<record> {
     if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
     let prose = [id symptom workaround repro] | where ($n | get $it | describe) != string
     if ($prose | is-not-empty) { error make --unspanned {msg: $"($id): not a string: ($prose | str join ', ')"} }
+    let broken = [symptom workaround repro] | where ($n | get $it) =~ "\n"
+    if ($broken | is-not-empty) { error make --unspanned {msg: $"($id): line break in ($broken | str join ', ')"} }
     if ($n.skills | describe) !~ '^list<string>' { error make --unspanned {msg: $"($id): skills must be a non-empty list of strings"} }
     if $n.kind == option and (($n.option | describe) !~ '^record' or ($n.option.name? | describe) != string or ($n.option.enabled? | describe) != bool) {
       error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
@@ -112,6 +114,7 @@ def notes []: nothing -> list<record> {
       let bad = [$n.since $n.reproduced] | where ($it | describe) != string or $it !~ $VERSION
       let bad = if $n.until != null and (($n.until | describe) != string or $n.until !~ $VERSION) { $bad | append [$n.until] } else { $bad }
       if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version string: ($bad | to nuon)"} }
+      if $n.upstream != null and ($n.upstream | describe) != string { error make --unspanned {msg: $"($id): upstream must be a string or null"} }
       if (older $n.reproduced $n.since) { error make --unspanned {msg: $"($id): reproduced is older than since"} }
       if $n.until != null and not (older $n.reproduced $n.until) { error make --unspanned {msg: $"($id): until must be newer than reproduced"} }
     }

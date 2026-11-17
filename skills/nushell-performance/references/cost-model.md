@@ -2,7 +2,7 @@
 
 Measured with the kit in [`scripts/probe.nu`](../scripts/probe.nu) on nu 0.117.1-nightly, one WSL2 laptop with
 22 CPUs, November 2026. Trust the ratios; re-measure the entry costs with `probe calibrate` after a nu upgrade
-or on another machine (the repository's `bench/perf/run.nu` re-measures the rest of
+or on another machine (the plugin's `bench/perf/run.nu` re-measures the rest of
 these figures; its header lists what it skips). Library case studies measured on an older nu are in [case studies](case-studies.md).
 
 ## Entry cost
