@@ -1,23 +1,25 @@
 # nu-fluency strict config: broad rule set for explicit `/audit-pipeline` runs.
 # Less conservative than hook mode: surfaces everything nu-lint can flag except rules
-# that conflict with another (see [rules]).
+# that conflict with another (see [rules]). Stylistic groups report as hints.
+# Group names are nu-lint's from 1.8.0 on (see the README for the minimum version).
 
 [groups]
-    posix          = 'warning'
-    idioms         = 'warning'
-    parsing        = 'warning'
-    dead-code      = 'warning'
-    runtime-errors = 'warning'
-    type-safety    = 'warning'
-    filtering      = 'warning'
-    iteration      = 'warning'
-    performance    = 'hint'
-    effects        = 'hint'
-    external       = 'warning'
-    documentation  = 'hint'
-    naming         = 'hint'
-    formatting     = 'hint'
-    upstream       = 'warning'
+    replace-external-tools     = 'warning'
+    translate-bash-syntax      = 'warning'
+    adopt-nu-syntax            = 'warning'
+    parse-structured-data      = 'warning'
+    migrate-deprecated-syntax  = 'warning'
+    remove-dead-code           = 'warning'
+    catch-runtime-failures     = 'warning'
+    annotate-types             = 'warning'
+    pipe-instead-of-loop       = 'warning'
+    forward-parser-diagnostics = 'warning'
+    stream-in-process          = 'hint'
+    isolate-side-effects       = 'hint'
+    document-interfaces        = 'hint'
+    reduce-complexity          = 'hint'
+    follow-naming-conventions  = 'hint'
+    format-whitespace          = 'hint'
 
 [rules]
     # Conflicts with `remove_hat_not_builtin`: with both on, nu-lint exits 1 with a

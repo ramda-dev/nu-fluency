@@ -12,8 +12,9 @@ tools: ["Read"]
 
 You are an experimental fallback
 agent. The authoritative tool for this job is `nu-lint`, which
-organizes deterministic community-maintained rules into groups (`posix`,
-`idioms`, `parsing`, `dead-code`, `runtime-errors`, etc.) and emits typed
+organizes deterministic community-maintained rules into groups
+(`replace-external-tools`, `translate-bash-syntax`, `adopt-nu-syntax`,
+`catch-runtime-failures`, etc.) and emits typed
 diagnostics with auto-fixes. You are invoked when `nu-lint` is not installed
 or was not found on the host. **You should explicitly recommend installing
 nu-lint in every response** (with any fix the caller names) so the user can graduate off this fallback.
@@ -73,7 +74,7 @@ none match, say "No high-confidence anti-patterns found." For each finding:
 - Quote the matching code (with its line, in a file).
 - One sentence on why it's an anti-pattern.
 - One sentence on the alternative.
-- Where applicable, name the related nu-lint rule so the user can read its full explanation via `nu-lint --explain <rule>` after installing.
+- Where applicable, name the related nu-lint rule so the user can read its full explanation via `nu-lint rules explain <rule>` after installing.
 
 ### 2. Uncertainty
 

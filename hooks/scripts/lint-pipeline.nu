@@ -29,7 +29,7 @@ def format-reason []: list<string> -> string {
     let diagnostics = $in
     let count = $diagnostics | length
     let header = $"nu-lint flagged ($count) issue\(s\) in the just-executed nu code."
-    let footer = 'Run `nu-lint --fix <file>` to auto-fix where possible, or `/audit-pipeline` for guidance. To silence specific rules edit `configs/hook.nu-lint.toml`.'
+    let footer = 'Run `nu-lint fix <file>` to auto-fix where possible, or `/audit-pipeline` for guidance. To silence specific rules edit `configs/hook.nu-lint.toml`.'
     [$header '' ...$diagnostics '' $footer] | str join "\n"
 }
 
