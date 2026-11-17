@@ -67,6 +67,10 @@ cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 then on Windows inside the default WSL distribution, on its `PATH` or in the same
 two cargo folders under its home. The code reaches nu-lint on stdin, never through a shell, so no
 snippet needs quoting, and inside WSL the config path is converted with `wslpath`.
+`/audit-pipeline` runs through the Nushell MCP server, which a host may start with
+the MCP SDK's short default list of environment variables (`HOME`, `USERPROFILE` and
+`PATH` among them, not `CARGO_HOME`), so a nu-lint that sits only under a custom `$CARGO_HOME` reaches the
+hook but not `/audit-pipeline`: put its `bin` folder on `PATH` instead.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is
 unavailable. The only downside is losing out on deterministic diagnostics.

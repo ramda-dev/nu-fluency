@@ -37,7 +37,7 @@ same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.
 [case studies](references/case-studies.md) mark each one re-run since).
 
 ```nu
-use '${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'
+use r#'${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'#
 ```
 
 Known bugs for the running nu, if any:

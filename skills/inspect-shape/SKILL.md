@@ -15,7 +15,7 @@ metadata:
 Call `nu_exec` with `pipeline` set to:
 
 ```nu
-use '${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'
+use r#'${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'#
 <expression> | shape
 ```
 

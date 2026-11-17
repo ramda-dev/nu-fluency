@@ -52,21 +52,24 @@ The plugin's [`scripts/lint.nu`](../../scripts/lint.nu) finds nu-lint (on
 code it reads from stdin, so the snippet never passes through a shell and needs
 no quoting or escaping, whatever quotes or braces it holds.
 
-1. Call `nu_exec` with `structured: false`, this pipeline, and as `input` the
-   snippet's raw text with the escaping undone. Pass the text itself: the tool
-   describes `input` as NUON or JSON, but here it must not be quoted or
-   encoded, or nu-lint lints a single string literal and reports it clean.
+1. Call `nu_exec` with `structured: false`, this pipeline, `cwd` set to the
+   project's working directory (so a relative `use` in the snippet resolves
+   there), and as `input` the snippet's raw text with the escaping undone. Pass
+   the text itself: the tool describes `input` as NUON or JSON, but here it must
+   not be quoted or encoded, or nu-lint lints a single string literal and
+   reports it clean.
 
    ```nu
    use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; $in | lint check strict | to json
    ```
 
-   For a `.nu` file, pass its absolute path as `input` instead, as plain text,
-   and read the file (a relative path resolves against the MCP server's
-   directory, not the project's):
+   For a `.nu` file, pass its absolute path as `input` instead, as plain text.
+   The pipeline moves to the file's folder before reading it, so the file's own
+   relative `use` and `source` paths resolve; findings are reported against
+   `<stdin>`, so name the file when you render them:
 
    ```nu
-   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; open --raw ($in | str trim) | lint check strict | to json
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; let file = $in | str trim; cd ($file | path dirname); open --raw $file | lint check strict | to json
    ```
 
 2. Read the JSON result:
@@ -78,8 +81,9 @@ no quoting or escaping, whatever quotes or braces it holds.
    - Otherwise nu-lint ran and failed: report its `stderr` and `output` and
      stop; do not fall back.
 
-   If the `nu_exec` call itself fails, check the cause first: an `open` error
-   for a file that was not found means the `.nu` path was wrong (make it absolute and retry). Otherwise
+   If the `nu_exec` call itself fails, check the cause first: a `cd` or `open`
+   error for a path that was not found means the `.nu` path was wrong (make it
+   absolute and retry). Otherwise
    (the tool is unavailable, or `nu` cannot load the script) say so and follow
    the [fallback](#fallback).
 

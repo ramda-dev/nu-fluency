@@ -2,7 +2,7 @@
 # The shape of a value for the inspect-shape skill: its detailed type, its length
 # when it has one, and the value itself, cut to the first rows of a list or table.
 #
-#   use '${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'
+#   use r#'${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'#
 #   <expression> | shape
 #
 # A closure is run (with no arguments) and its result described, so a closure
