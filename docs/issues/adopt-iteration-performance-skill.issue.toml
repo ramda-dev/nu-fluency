@@ -4,7 +4,7 @@ version = '3.0.0'
   name   = 'Adopt Iteration Performance Skill'
   slug   = 'adopt-iteration-performance-skill'
   date   = 2026-11-15
-  status = 'open'
+  status = 'completed'
 
   [issue.vision]
     outcome = 'singular'
