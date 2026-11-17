@@ -46,10 +46,10 @@ export def entries [code: closure]: nothing -> record<total: int, by: record, cl
 
 # Median milliseconds of one run of `code`.
 export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -> float {
-  do $code | ignore
+  let _ = do $code
   1..$passes | each {
     let t = date now
-    for _ in 1..$rounds { do $code | ignore }
+    for _ in 1..$rounds { let _ = do $code }
     ((date now) - $t) / $rounds / 1ms
   } | math median | math round --precision 3
 }
@@ -62,16 +62,16 @@ export def compare [old: closure new: closure --rounds: int = 100 --passes: int 
   let a = do $old
   let b = do $new
   if $a != $b { error make --unspanned {msg: 'the variants return different values; nothing timed' help: $"old: ($a | to nuon | str substring 0..300)\nnew: ($b | to nuon | str substring 0..300)"} }
-  do $old | ignore; do $new | ignore
+  let _ = do $old; let _ = do $new
   let half: int = [($rounds // 2) 1] | math max
   let runs = 1..$passes | each {
       let t0 = date now
-      for _ in 1..$half { do $old | ignore }
+      for _ in 1..$half { let _ = do $old }
       let t1 = date now
-      for _ in 1..$half { do $new | ignore }
-      for _ in 1..$half { do $new | ignore }
+      for _ in 1..$half { let _ = do $new }
+      for _ in 1..$half { let _ = do $new }
       let t2 = date now
-      for _ in 1..$half { do $old | ignore }
+      for _ in 1..$half { let _ = do $old }
       let t3 = date now
       let first: float = ($t1 - $t0) / $half / 1ms
       let last: float = ($t3 - $t2) / $half / 1ms
@@ -116,9 +116,9 @@ export def hot [code: closure --top: int = 12]: nothing -> record<total: duratio
 # measured on one machine and one nu version: re-run it before trusting the numbers anywhere else.
 export def calibrate [--rounds: int = 3000]: nothing -> table<form: string, us: int> {
   let cost = {|code: closure|
-    do $code | ignore
+    let _ = do $code
     let t = date now
-    for _ in 1..$rounds { do $code | ignore }
+    for _ in 1..$rounds { let _ = do $code }
     ((date now) - $t) / $rounds / 1us | math round
   }
   def f [x: int]: nothing -> int { $x }

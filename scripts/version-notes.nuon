@@ -113,7 +113,7 @@
     reproduced: '0.117.0'
     until: null
     symptom: "`std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; a result for two or more closures also carries ANSI highlighting in its `code` column"
-    workaround: 'time with `timeit`, or with `probe time` (nushell-performance `scripts/probe.nu`) when the closure does not end in a `try`'
+    workaround: 'time with `probe time` (nushell-performance `scripts/probe.nu`) or `timeit`'
     repro: '^$nu.current-exe --no-config-file -c "use std/bench; bench { 1 } { 2 } --rounds 5 | to nuon" | str starts-with (ansi escape)'
     upstream: null
   }

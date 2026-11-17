@@ -204,4 +204,4 @@ if ($dead | is-not-empty) and (under $r.at ...$dead) { continue }
 - [Reading `debug profile` directly](references/debug-profile.md): read when `probe hot` and `probe entries` are
   not enough.
 - Don't time with `std bench`: under `nu -l` it reported 962 us for one `each` that a plain timing loop put at
-  55 us (nu 0.115.2-nightly). Use `probe time` (or `timeit` when the closure ends in a `try`).
+  55 us (nu 0.115.2-nightly). Use `probe time` or `timeit`.
