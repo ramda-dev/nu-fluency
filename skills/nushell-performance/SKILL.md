@@ -19,12 +19,12 @@ metadata:
 
 In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by what
 each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about twice
-what entering a `for`, an `if` or a custom `def` costs (up to three times for `record each` / `record where`),
-whatever the input size; those ratios include the timing harness, and net of it the gap is wider ([cost
-model](references/cost-model.md)). Per element, a loop body costs a little over half what the same closure
-body does, but a loop that builds a list copies it on every step. And in a shell library most wall time is not
-nu code at all: it is one external program or one builtin that enumerates the system. So profile first, count
-entries second, edit last.
+what entering a `for`, an `if` or a custom `def` costs (three or more for `record each`, `record where` and
+`generate`), whatever the input size; those ratios include the timing harness, and net of it the gap is wider
+([cost model](references/cost-model.md)). Per element, a loop body costs a little over half what the same
+closure body does, but a loop that builds a list copies it on every step. And in a shell library most wall
+time is not nu code at all: it is one external program or one builtin that enumerates the system. So profile
+first, count entries second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
@@ -47,10 +47,10 @@ Three tiers of entry cost:
 - **Cheapest, about 3 us**: `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, and most
   closure-free builtins, including `update` / `insert` / `default` / `group-by` / `sort-by` given a value or a
   column name.
-- **About two to three times that**: the commands that call a closure for each element (`each`, `where`,
-  `any`, `all`, `reduce`, `items`, `take while`, `record each`, `record where`), and `update` / `insert` /
-  `default` / `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}` and
-  `collect {closure}` stay in the cheapest tier.
+- **About two to four times that**: the commands that call a closure for each element (`each`, `where`, `any`,
+  `all`, `reduce`, `items`, `take while`, `record each`, `record where`, `generate`), and `update` / `insert`
+  / `default` / `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}`
+  and `collect {closure}` stay in the cheapest tier.
 - **A budget, not a style**: `tee` and `interleave` (about 70 us) and `par-each` (about 0.83 ms).
 
 Per element, a `for` body costs a little over half what the same body costs in `each`, and a closure-free
@@ -160,11 +160,11 @@ Try 1 to 5 in that order. 6 and 7 apply wherever `probe hot` points at them.
    closure form is lazy, the value form is not.
 6. **`par-each` is a budget, not a style.** It costs about 0.83 ms to enter, so it pays only when the serial
    work it spreads is well above that: external or IO work per element, or a heavy pure body over many
-   elements (a formatter at 3.7-6.1 us per element crossed over near 170 elements). Over a few cheap pure rows
-   it is the whole cost. Time `--keep-order` as well as the unordered form: the known-bug notes at the top of
-   this skill say whether the unordered form is slower on this nu. When real callers sit on both sides of
-   the crossover, keep `par-each`: a size gate would bake a load-dependent constant into the code
-   ([figures](references/cost-model.md#par-each)).
+   elements (a formatter at 3.7-6.1 us per element crossed over near 170 elements with `--keep-order`). Over a
+   few cheap pure rows it is the whole cost. Time `--keep-order` as well as the unordered form: the known-bug
+   notes at the top of this skill say whether the unordered form is slower on this nu. When real callers sit
+   on both sides of the crossover, keep `par-each`: a size gate would bake a load-dependent constant into the
+   code ([figures](references/cost-model.md#par-each)).
 7. **A cheaper builtin for the same job**, when `probe hot` puts the time on one closure-free line:
    `describe | str replace --regex '<.*' ''` for `describe | split words | first` (0.36 ms to 0.005 ms), a builtin
    `match` for a closure-taking dispatch helper. `probe entries` reads 0 to 0 for such a change: only the

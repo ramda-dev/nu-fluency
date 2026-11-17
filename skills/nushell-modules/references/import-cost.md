@@ -21,7 +21,9 @@ temporary script's directory instead of `cwd`. Ways around it:
 a relative `use` resolves against `cwd`; the result comes back as text rather
 than NUON.
 2. Use the `nu_repl_*` tools instead of `nu_exec`. A REPL bucket keeps its state
-between calls and is not subject to this.
+between calls, but a relative `use` there resolves against the directory the
+server was started in, not against a later `cd`: pair it with an absolute path
+or with `const NU_LIB_DIRS`.
 3. Pass `includeDirs` with the parent directories of the modules: the tool puts
 them on `NU_LIB_DIRS`, so `use <name>` resolves in either mode. Setting
 `const NU_LIB_DIRS = [...]` at the start of the pipeline does the same by hand.

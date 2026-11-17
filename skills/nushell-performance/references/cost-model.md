@@ -76,8 +76,8 @@ against 27 ms for the `items` form.
 
 - It costs about 0.83 ms to enter.
 - External or IO work per element (two globs): `each` measured 62% slower.
-- A formatter at 3.7-6.1 us per element: `each` wins by 97% at 4 elements and by 25% at 130, and loses by 78%
-  at 1741, crossover near 170.
+- A formatter at 3.7-6.1 us per element, against `par-each --keep-order`: `each` wins by 97% at 4 elements and
+  by 25% at 130, and loses by 78% at 1741, crossover near 170.
 - Over a few cheap pure rows it is the whole cost (3 rows: 0.87 ms, against 0.007 ms with `each`).
 - At 1741 elements the unordered form took 26-29 ms in every round, slower than `each` (8-9 ms), while
   `--keep-order` took 2.1-2.3 ms; `--threads 4` did not cure it (see the

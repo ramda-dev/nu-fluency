@@ -211,8 +211,9 @@ interactive `exit` refuses once while it runs.
 ## Modules with `nu_exec`
 
 `nu_exec` runs a pipeline from a temporary script, so a relative `use` does not
-resolve against `cwd` there. Pass `structured: false` or use the `nu_repl_*`
-tools; [import cost and `nu_exec`](./references/import-cost.md) has the details
+resolve against `cwd` there. Pass `structured: false` or `includeDirs` (a REPL
+bucket resolves a relative `use` against the server's start directory, not a
+`cd`, so it is no fix by itself); [import cost and `nu_exec`](./references/import-cost.md) has the details
 and the other workarounds.
 
 ## Anti-Patterns

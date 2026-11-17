@@ -18,7 +18,7 @@
     kind: option
     skills: [nushell-idioms nushell-control-flow]
     option: {name: pipefail enabled: false}
-    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not stop the pipeline or reach `catch`; only the last command decides the outcome (with it on, a failing external in a bound or returned pipeline still does not raise; see the note on that bug)'
+    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not fail the pipeline or reach `catch`; only the last command decides the outcome (with it on, a failing external in a bound or returned pipeline still does not raise; see the note on that bug)'
     workaround: 'capture the external with `complete` and test its `exit_code`'
     repro: 'try { ^false | lines | length; "no error" } catch { "error" }'
   }

@@ -62,8 +62,8 @@ The checks made when the value arrives depend on the
 |---|---|
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
-| `grep pattern file` | `open file \| lines \| where $it =~ "pattern"` (or `find "pattern"`) |
-| `awk '{print $2}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
+| `grep pattern file` | `open file \| lines \| where $it =~ "pattern"` (or `find --no-highlight "pattern"`; plain `find` wraps matches in ANSI highlighting) |
+| `awk '{print $(2)}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
 | `sed 's/a/b/'` | `str replace 'a' 'b'` |
 | `cat f \| head -n 5` | `open f \| lines \| first 5` |
 | `wc -l < file` | `open file \| lines \| length` |
@@ -72,8 +72,8 @@ The checks made when the value arrives depend on the
 | `if [[ "$x" == "y" ]]; then …; fi` | `if $x == "y" { … }` |
 | `read -r line` | (rare; nu is non-interactive by default in scripts) |
 | `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
-| `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout but returns nothing; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
-| `set -e` | (built-in; pipelines stop on first error unless `try` wraps) |
+| `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout, returns nothing and does not fail on a non-zero exit; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
+| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; a failing external inside a `let` or subexpression does not stop it, see the known-bug notes, so use `complete` and check `exit_code` there) |
 
 ## Anti-Patterns: Common Mistakes
 

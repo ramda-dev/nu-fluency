@@ -12,10 +12,18 @@
 # It runs in a fresh process, which sees each experimental option at its default
 # whatever the user's own shell sets, so an option note is printed as a condition
 # for every nu that has the option, and stated as fact when the option's default
-# (from its `status`: opt-out is on by default, opt-in off) is the setting it warns about.
+# (its `enabled` value in this fresh process) is the setting it warns about. An option
+# whose `status` starts with `deprecated` can no longer be changed, so its note is
+# stated as fact when its fixed setting is the one it warns about and dropped otherwise.
 
 const DATA = path self version-notes.nuon
 const REFERENCE = path self ../skills/nushell-idioms/references/nushell-diagnostics.md
+const SKILLS = path self ../skills
+const KEYS = {
+  option: [id kind skills option symptom workaround repro]
+  diagnostic: [id kind skills since reproduced until symptom workaround repro upstream]
+}
+const VERSION = '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+.*)?$'
 
 # A version string as a sortable key: 0.117.1-nightly.3 sorts after 0.117.0 and
 # before 0.117.1. A prerelease without a number counts as number 0. Build metadata
@@ -43,13 +51,16 @@ def older [a: string b: string]: nothing -> bool {
 # default is the setting the note warns about.
 def applicable [skill: string]: nothing -> table {
   let running = version | get version
-  let options = debug experimental-options | select identifier status
-  open $DATA | where $skill in $it.skills | each {|note|
+  let options = debug experimental-options | select identifier enabled status
+  notes | where $skill in $it.skills | each {|note|
     match $note.kind {
       option => {
-        let status = $options | where identifier == $note.option.name | get status.0?
-        if $status != null {
-          $note | insert $.stale false | insert $.default (($status == opt-out) == $note.option.enabled)
+        let option = $options | where identifier == $note.option.name | get 0?
+        if $option != null {
+          let default = $option.enabled == $note.option.enabled
+          if $default or not ($option.status | str starts-with deprecated) {
+            $note | insert $.stale false | insert $.default $default
+          }
         }
       }
       diagnostic => {
@@ -80,13 +91,32 @@ def bullet [running: string]: record -> string {
   }
 }
 
+# The data file's rows, or an error naming the first row the per-skill form could not use.
+def notes []: nothing -> list<record> {
+  let notes = open $DATA
+  for n in $notes {
+    let id = $n.id? | default '(no id)'
+    let keys = $KEYS | get --optional ($n.kind? | default '')
+    if $keys == null { error make --unspanned {msg: $"($id): kind must be option or diagnostic"} }
+    let missing = $keys | where $it not-in ($n | columns)
+    if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
+    let unknown = $n.skills | where not ($SKILLS | path join $it SKILL.md | path exists)
+    if ($unknown | is-not-empty) { error make --unspanned {msg: $"($id): no skill ($unknown | str join ', ')"} }
+    if $n.kind == diagnostic {
+      let bad = [$n.since $n.reproduced] | append ($n.until | default []) | where $it !~ $VERSION
+      if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version: ($bad | str join ', ')"} }
+    }
+  }
+  $notes
+}
+
 def table-cell []: any -> string {
   default '' | into string | str replace --all '|' '\|'
 }
 
 # The reference document generated from the data file.
 def reference []: nothing -> string {
-  let notes = open $DATA
+  let notes = notes
   let diagnostics = $notes | where kind == diagnostic | each {|n|
     [
       $n.id

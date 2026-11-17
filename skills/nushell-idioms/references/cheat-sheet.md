@@ -442,7 +442,7 @@ $y                                # 6
 const PATH = "/etc/foo"
 $PATH                             # "/etc/foo"
 
-# type annotations (optional; parse-time when the type is known, else runtime)
+# type annotations (optional; parse-time when the parser can prove a mismatch, else runtime)
 let n: int = 42                   # valid
 let s: string = "alice"           # valid
 let bad: int = "foo"              # invalid (parser error)

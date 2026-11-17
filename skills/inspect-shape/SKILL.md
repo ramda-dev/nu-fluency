@@ -18,10 +18,12 @@ use '${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'
 <expression> | shape
 ```
 
-The result is a record. `type` is the detailed type (`list<int>`, `table<a:
-int>`), `length` the number of rows of a list or table, or of bytes of a
-binary, and `value` the value itself, cut to the first three rows of a list or
-table (`shape --max-rows <n>` keeps more). A `nothing` result has `type` only.
+The result is a record. `type` is the detailed type (`list<int>`,
+`table<a: int>`), `length` the number of rows of a list or table, or of bytes
+of a binary, and `value` the value itself, cut to the first three rows of a
+list or table (`shape --max-rows <n>` keeps more). A `nothing` result has
+`type` only. `shape` collects its whole input before cutting it, so put
+`first <n>` before it for an endless or very long stream.
 
 A closure piped to `shape` is run (with no arguments) and its result
 described, so `shape` cannot describe a closure value itself, and it runs any

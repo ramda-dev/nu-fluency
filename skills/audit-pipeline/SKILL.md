@@ -1,7 +1,7 @@
 ---
 name: audit-pipeline
 description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
-argument-hint: "<nushell snippet> [--read-only]"
+argument-hint: "[<nushell snippet or .nu path>] [--read-only]"
 allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
 shell: bash
 ---
@@ -23,9 +23,11 @@ $ARGUMENTS
 
 Claude Code (2.1.326) escapes `!` when it substitutes the arguments: a `!` at
 the start of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a
-space is put between a backtick and an adjacent `!` (`` `a b`! `` arrives as
-`` `a b` ! ``). Where the snippet shows either, undo it when you write the
-snippet into the heredoc.
+space is put between a backtick and an adjacent `!`, which then gets the
+backslash too (`` `a b`! `` arrives as `` `a b` \! ``, `` !`x` `` as
+`` \! `x` ``). Undo both wherever you use the snippet (the heredoc or the
+fallback agent's prompt). A space that was already before the `!` cannot be
+told apart from an inserted one, so keep it only where the code needs it.
 
 If the snippet is empty (no arguments, only `--read-only`, or the block above
 still shows the placeholder), lint the Nushell code you most recently wrote or
@@ -89,8 +91,10 @@ Else, follow the [fallback](#fallback) instructions.
 ## Fallback
 
 1. Invoke the `nu-fluency:generate-diagnostics` subagent
-   ([definition](../../agents/generate-diagnostics.md)). Pass it the snippet
-   verbatim.
+   ([definition](../../agents/generate-diagnostics.md)). Pass it the code to
+   lint, un-escaped: the snippet, the code you most recently wrote or ran when
+   the snippet is empty, or for a `.nu` path that path with an instruction to
+   Read the file and review its contents.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its

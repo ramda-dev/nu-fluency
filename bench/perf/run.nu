@@ -244,7 +244,7 @@ let closure_free_ms = section closure_free_ms {
 }
 
 # cost-model.md#par-each reports the 1741-element case; this repeats it three times in one process to see
-# whether the unordered form's slowdown on the XPS run is stable or a one-off.
+# whether the unordered form's slowdown in that run (one WSL2 laptop, 22 CPUs) is stable or a one-off.
 let par_each_repeat = section par_each_repeat {
   let s = do $ints 1741
   1..3 | each {|round|
