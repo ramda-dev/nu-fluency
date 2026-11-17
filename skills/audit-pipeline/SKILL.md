@@ -22,10 +22,10 @@ $ARGUMENTS
 ```
 
 Claude Code (2.1.326) escapes `!` when it substitutes the arguments: a `!` at
-the start of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a
+the start of a word or line arrives as `` \! `` (so `!=` arrives as `\!=`), and a
 space is put between a backtick and an adjacent `!`, after which a `!` that
 starts a word gets the backslash too (`` `a b`! `` arrives as `` `a b` \! ``,
-and a word-initial `!` before a backtick as `\!`, a space and the backtick).
+and a word-initial `!` before a backtick as `` \! ``, a space and the backtick).
 Undo both wherever you use the snippet (the heredoc or the fallback agent's
 prompt). A space that was already next to the `!` (before it, or
 between it and a backtick) cannot be told apart from an inserted one, so keep
@@ -34,7 +34,7 @@ it only where the code needs it.
 Two more changes cannot be undone: Claude Code expands its own `${CLAUDE_…}`
 placeholders in the arguments (the plugin root, project directory, plugin data,
 skill directory, session id and effort, each written in that dollar-brace form),
-and a `\!` the code already had after a space arrives unchanged, so it reads like
+and a `` \! `` the code already had after a space arrives unchanged, so it reads like
 an escaped `!`. When the snippet may hold either, lint the file or the code as
 you wrote it instead.
 

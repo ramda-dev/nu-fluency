@@ -9,7 +9,7 @@
 #                   newest, `until` the first fixed version once known (null: open).
 #
 # Prose is written for a skill reader: `symptom` says what goes wrong, `workaround`
-# what to write instead. Single-quoted strings have no escapes: write a string
+# what to write instead; neither ends with a period, which the script adds. Single-quoted strings have no escapes: write a string
 # that holds an apostrophe in double quotes. After editing, regenerate the reference table with
 # `nu --no-config-file scripts/version-notes.nu render --write`. Some skills also
 # state a workaround in their own prose; when a bug gets an `until`, search the
@@ -100,7 +100,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: 'unordered `par-each` runs slower than `par-each --keep-order` on the same input, and can be slower than plain `each`'
+    symptom: 'over many cheap items (the repro uses 1741), unordered `par-each` runs markedly slower than `par-each --keep-order`, and can be slower than plain `each`; on small inputs the two match'
     workaround: 'pass `--keep-order` even when order does not matter'
     repro: 'let xs = 1..1741 | each { $in }; {unordered: (1..5 | each { timeit { $xs | par-each { $in * 2 } } } | math avg) ordered: (1..5 | each { timeit { $xs | par-each --keep-order { $in * 2 } } } | math avg)}'
     upstream: null
@@ -114,7 +114,7 @@
     until: null
     symptom: "`std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; a result for two or more closures also carries ANSI highlighting in its `code` column"
     workaround: 'time with `timeit`, or with `probe time` (nushell-performance `scripts/probe.nu`) when the closure does not end in a `try`'
-    repro: 'use std/bench; bench { 1 } --rounds 5 | to nuon'
+    repro: '^$nu.current-exe --no-config-file -c "use std/bench; bench { 1 } { 2 } --rounds 5 | to nuon" | str starts-with (ansi escape)'
     upstream: null
   }
 ]

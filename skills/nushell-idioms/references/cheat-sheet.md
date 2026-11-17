@@ -619,8 +619,9 @@ $list | where not ($it.flag? | default false)   # negate predicate; `where` has 
 ```nu
 ^cmd args | complete                       # → { stdout, stderr, exit_code }
 do --ignore-errors { ^cmd args }           # swallows a non-zero exit as a statement of its own, as a
-                                           # returned value, or piped to ignore/complete; bound with let,
-                                           # passed as an argument or piped on, it still raises (use complete)
+                                           # returned value, or piped to ignore/complete; bound with let or
+                                           # passed as an argument it still raises, and piped on it raises
+                                           # only as a statement of its own (known bug); use complete
 try { ... } catch { |e| ... }              # catch nu errors (see Control Flow)
 (^cmd args | complete).exit_code           # exit code without raising (a failing ^cmd statement
                                            # stops the script before $env.LAST_EXIT_CODE is read)

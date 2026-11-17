@@ -7,6 +7,7 @@ A plugin that helps Claude write [Nushell](https://github.com/nushell/nushell) (
 ```nu
 # 1. Ensure your Nushell version is compatible
 version | get version # >= 0.117.0
+# (the skills' preprocessing was tested on Claude Code 2.1.326)
 # 2. Add the plugin marketplace
 claude plugin marketplace add zaynram/code-marketplace
 # 3. Install the `nu-fluency` plugin
@@ -152,7 +153,7 @@ and show only the notes that apply to the installed `nu`; the full table is
 [`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
 After editing the data, run
 `nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
-when the table is stale).
+when the table is stale or an option note names an option the running `nu` lacks).
 
 ### Hooks
 

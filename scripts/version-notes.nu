@@ -5,7 +5,8 @@
 #   nu --no-config-file version-notes.nu <skill>         notes that apply to the running nu
 #   nu --no-config-file version-notes.nu render          the reference table, as markdown
 #   nu --no-config-file version-notes.nu render --write  regenerate the reference file
-#   nu --no-config-file version-notes.nu check           fail when the reference file is stale
+#   nu --no-config-file version-notes.nu check           fail when the reference file is stale or an
+#                                                        option note names an option this nu lacks
 #
 # The per-skill form is injected into SKILL.md bodies, so it stays one short line when
 # no note applies and never fails: a failing injected command aborts the whole skill.
@@ -105,6 +106,8 @@ def notes []: nothing -> list<record> {
     let broken = [id symptom workaround repro] | where ($n | get $it) =~ "\n"
     if ($broken | is-not-empty) { error make --unspanned {msg: $"($id): line break in ($broken | str join ', ')"} }
     if ($n.skills | describe) !~ '^list<string>' { error make --unspanned {msg: $"($id): skills must be a non-empty list of strings"} }
+    let dotted = [symptom workaround] | where ($n | get $it) ends-with '.'
+    if ($dotted | is-not-empty) { error make --unspanned {msg: $"($id): trailing period in ($dotted | str join ', ')"} }
     if $n.repro =~ '`' { error make --unspanned {msg: $"($id): backtick in repro"} }
     if $n.kind == option and (($n.option | describe) !~ '^record' or ($n.option.name? | describe) != string or ($n.option.enabled? | describe) != bool) {
       error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
