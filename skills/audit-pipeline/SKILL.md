@@ -58,7 +58,8 @@ wsl.exe --exec nu-lint --stdin --format compact --config "/<strict config path i
 PIPELINE
 ```
 
-Write `wsl.exe --exec` exactly, so the skill's permission rule covers it. The
+Write `wsl.exe --exec` exactly, so the skill's permission rule can cover it
+(a quote inside braces still prompts, as in the [procedure](#procedure)). The
 extra leading `/` stops Git Bash from rewriting the path into a Windows one;
 Linux reads `//work/…` as `/work/…`.
 Choose the heredoc delimiter as in the [procedure](#procedure).
@@ -73,7 +74,10 @@ Else, follow the [fallback](#fallback) instructions.
 
 1. Run the linter on the snippet. Call it by name, `nu-lint`, as written
    below rather than by the path found above, so the skill's permission rule
-   covers it.
+   covers it. Claude Code (2.1.326) still asks for permission when the snippet
+   has a quote inside braces (`{name: 'x'}`, `do { "a" }`), whatever the
+   rule; that prompt is expected, and in a non-interactive run the call is
+   denied, so report that instead of retrying.
 
    The quoted heredoc (`<<'PIPELINE'`) stops bash from expanding the snippet
    as shell syntax. A snippet line that is exactly the delimiter would end the
@@ -95,11 +99,13 @@ Else, follow the [fallback](#fallback) instructions.
    ([definition](../../agents/generate-diagnostics.md)). Pass it the code to
    lint, un-escaped: the snippet, the code you most recently wrote or ran when
    the snippet is empty, or for a `.nu` path that path with an instruction to
-   Read the file and review its contents. If the WSL installation path was an
-   absolute path but the strict config path inside WSL was `not found`, say
-   so, so the agent recommends a config fix instead of an install. On a
-   Windows host, also tell it that nu-lint installed inside WSL only in
-   `~/.cargo/bin` is not found, so it mentions the README's symlink step.
+   Read the file and review its contents. Name the fix for the case that
+   applies, so the agent adds it to its recommendation: if the WSL
+   installation path was an absolute path but the strict config path inside
+   WSL was `not found`, "nu-lint was found in WSL, but `wslpath` could not
+   convert the plugin's config path"; on a Windows host otherwise, "if
+   nu-lint is installed inside WSL in `~/.cargo/bin`, link it with
+   `sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`".
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its

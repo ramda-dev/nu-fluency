@@ -119,7 +119,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 - **`/audit-pipeline [<snippet or .nu path>] [--read-only]`**
 — runs nu-lint on the snippet (or on the code Claude last wrote) and applies fixes;
 `--read-only` only reports, with `nu-lint --explain` per rule. Falls back to the
-experimental agent if nu-lint isn't installed.
+experimental agent, which only suggests fixes, when nu-lint is not installed or cannot be found.
 - **`/command-help <name>`**
 — inline help lookup via `nu_doc_help`.
 

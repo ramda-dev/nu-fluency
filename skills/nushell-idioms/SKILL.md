@@ -62,7 +62,7 @@ The checks made when the value arrives depend on the
 |---|---|
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
-| `grep pattern file` | `open --raw file \| lines \| where $it =~ "pattern"` (or `find --no-highlight --regex "pattern"`; without `--regex`, `find` matches a literal substring, and without `--no-highlight` it wraps matches in ANSI highlighting) |
+| `grep pattern file` | `open --raw file \| lines \| where $it =~ 'pattern'` (or `find --no-highlight --regex 'pattern'`; single quotes keep regex backslashes literal; without `--regex`, `find` matches a literal substring, and without `--no-highlight` it wraps matches in ANSI highlighting) |
 | `awk '{print $(2)}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
 | `sed 's/a/b/'` | `str replace 'a' 'b'` |
 | `cat f \| head -n 5` | `open --raw f \| lines \| first 5` |

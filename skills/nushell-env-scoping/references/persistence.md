@@ -6,7 +6,7 @@ How to carry `$env` across separate nu invocations through a file. Prefer a pers
 # Load
 let __persisted = try {
     open --raw $path | from json
-    | reject --optional PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS
+    | reject --optional PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
 } catch { {} }
 for entry in ($__persisted | transpose key value) {
     try { load-env { ($entry.key): $entry.value } } catch {}
@@ -16,10 +16,10 @@ for entry in ($__persisted | transpose key value) {
 
 # Save
 $env
-| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS
+| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
 | record each {|k v| try { $v | to json --raw | ignore; [$k $v] } catch { null } }
 | to json --raw
 | save --force --raw $path
 ```
 
-Both sides drop the variables nu sets itself, so a saved value never overwrites the running process's own. Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).
+Both sides drop the per-process variables nu sets itself (including `OLDPWD`, which `cd` sets), so a saved value never overwrites the running process's own; configuration such as `NU_LIB_DIRS` is carried over like any other variable. Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).
