@@ -25,9 +25,9 @@
     kind: option
     skills: [nushell-idioms]
     option: {name: enforce-runtime-annotations enabled: false}
-    symptom: 'the pipeline form `… | let x: T` does not check the annotation, so a value of another type binds silently'
-    workaround: 'use the statement form `let x: T = …`, which is checked at parse time, or test the value with `describe`'
-    repro: "'x' | let y: int; $y"
+    symptom: 'a `let` annotation is not checked against a value whose type is only known at runtime (the pipeline form `… | let x: T`, or `let x: T = …` fed by `from json`, `open` or an external), so a value of another type binds silently; only a type the parser can see is still checked (`let x: int = "a"` fails)'
+    workaround: 'validate dynamically typed input explicitly (`describe`, or convert with `into <type>`), or turn the option back on'
+    repro: "let y: int = ('[1]' | from json); $y | describe"
   }
   {
     id: hide-env-after-env-call
@@ -36,7 +36,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`hide-env` does nothing once a `do --env` or `def --env` call has run earlier in the same block: the variable stays set'
+    symptom: '`hide-env` does nothing once a `do --env` or `def --env` call has run earlier in the same block or in a block that encloses it, so moving it into a helper does not help: the variable stays set'
     workaround: 'run externals that must not see a variable under `with-env {VAR: null}` or `env -i`, and bind the value before any `--env` call'
     repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
     upstream: null

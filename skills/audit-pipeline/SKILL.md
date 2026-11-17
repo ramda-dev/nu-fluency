@@ -43,6 +43,7 @@ PIPELINE
 Write `wsl.exe --exec` exactly, so the skill's permission rule covers it. The
 extra leading `/` stops Git Bash from rewriting the path into a Windows one;
 Linux reads `//work/…` as `/work/…`.
+Choose the heredoc delimiter as in the [procedure](#procedure).
 
 Else, follow the [fallback](#fallback) instructions.
 
@@ -52,8 +53,13 @@ Else, follow the [fallback](#fallback) instructions.
    below rather than by the path found above, so the skill's permission rule
    covers it.
 
+   The quoted heredoc (`<<'PIPELINE'`) stops bash from expanding the snippet
+   as shell syntax. A snippet line that is exactly the delimiter would end the
+   heredoc early and run the lines after it as bash, so when any line of the
+   snippet is `PIPELINE`, pick a word that no line equals (`PIPELINE_END`,
+   `NU_SNIPPET_1`, …) and use it in both the opener and the closer.
+
    ```bash
-   # quoted heredoc (<<'PIPELINE') stops bash from expanding the snippet as shell syntax
    nu-lint --stdin --format compact --config "${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml" <<'PIPELINE'
    <the snippet, verbatim>
    PIPELINE

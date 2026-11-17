@@ -83,7 +83,7 @@ $env | select --optional KEY1 KEY2 KEY3
 - **`do { … }` without `--env`** silently swallows mutations. The default is "isolate"; the opt-in is "propagate."
 - **A failed `load-env` is atomic** — if the record contains one bad key (e.g. `PWD`), nothing else loads. Per-key try-load is defensive.
 - **`with-env` changes do NOT escape** — that's the design. If you want propagation, use `do --env`.
-- **Don't rely on `hide-env` to scrub an environment**: it can silently do nothing after a `--env` call ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). For a child process that needs a clean environment, start it from scratch (`^env -i PATH=$env.PATH HOME=$tmp …` on POSIX); `with-env` only overrides the keys it names and the child still inherits everything else.
+- **Don't rely on `hide-env` to scrub an environment**: it can silently do nothing after a `--env` call ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). For a child process that needs a clean environment, start it from scratch (`^env -i $"PATH=($env.PATH | str join (char esep))" $"HOME=($tmp)" …` on POSIX; a bare `PATH=$env.PATH` reaches `env` as literal text); `with-env` only overrides the keys it names and the child still inherits everything else.
 
 ## References
 

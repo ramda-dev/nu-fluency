@@ -42,8 +42,10 @@ Three tiers of entry cost:
 - **Cheapest, about 3 us**: `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, and most
   closure-free builtins, including `update` / `insert` / `default` / `group-by` / `sort-by` given a value or a
   column name.
-- **About twice that**: every command that takes a closure (`each`, `where`, `any`, `all`, `reduce`, `items`,
-  `take while`, `record each`, `record where`, and the builtins above given a closure).
+- **About twice that**: the commands that call a closure for each element (`each`, `where`, `any`, `all`,
+  `reduce`, `items`, `take while`, `record each`, `record where`), and `update` / `insert` / `default` /
+  `group-by` / `sort-by` given a closure. Taking a closure is not the cost by itself: `do {}` and
+  `collect {closure}` stay in the cheapest tier.
 - **A budget, not a style**: `tee` and `interleave` (about 70 us) and `par-each` (about 0.83 ms).
 
 Per element, a `for` body costs a little over half what the same body costs in `each`, and a closure-free

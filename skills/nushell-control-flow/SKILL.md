@@ -117,7 +117,7 @@ The catch closure receives an error record with `msg`, `debug`, `raw`, etc. The 
 
 ## A note on iteration shortcuts
 
-For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. `[] | math sum` raises an error rather than returning 0, so write `append 0 | math sum` when the list can be empty. The `$it` implicit-element name works inside one-arg closures (`where $it > 2`), useful for short predicates that don't earn a named parameter. Use `enumerate` to pair each element with its index before mapping.
+For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. `[] | math sum` raises an error rather than returning 0, so append a zero of the element type when the list can be empty: `append 0 | math sum` for numbers, `append 0ns` for durations, `append 0b` for filesizes (an `int` zero added to a duration or filesize is a type error). The `$it` implicit-element name works inside one-arg closures (`where $it > 2`), useful for short predicates that don't earn a named parameter. Use `enumerate` to pair each element with its index before mapping.
 
 ## Pitfalls
 

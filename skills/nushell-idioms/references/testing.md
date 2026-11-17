@@ -33,7 +33,8 @@ non-zero exit with the error on stderr.
 - **Build the child's environment, don't scrub it.** `hide-env` can silently do
   nothing after a `--env` call ([known bug](./nushell-diagnostics.md)), so start
   the child from scratch where an `env` program exists
-  (`^env -i PATH=$env.PATH HOME=$tmp nu …`).
+  (`^env -i $"PATH=($env.PATH | str join (char esep))" $"HOME=($tmp)" nu …`;
+  a bare `PATH=$env.PATH` reaches `env` as literal text).
 - **Sandbox state.** Point `HOME` and `XDG_*` at a temp tree so code that
   persists state (`std-rfc/kv --universal`, caches) never touches real data.
   `std-rfc/kv` does not create `$XDG_DATA_HOME/nushell`; create it first.

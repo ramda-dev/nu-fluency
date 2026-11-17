@@ -14,9 +14,10 @@ const DATA = path self version-notes.nuon
 const REFERENCE = path self ../skills/nushell-idioms/references/nushell-diagnostics.md
 
 # A version string as a sortable key: 0.117.1-nightly.3 sorts after 0.117.0 and
-# before 0.117.1. A prerelease without a number counts as number 0.
+# before 0.117.1. A prerelease without a number counts as number 0. Build metadata
+# (`+…`) does not affect precedence, so it is dropped.
 def version-key []: string -> list<int> {
-  let parts = split row '-'
+  let parts = split row '+' | first | split row '-'
   let core = $parts | first | split row '.' | each { into int }
   let pre = $parts | skip 1 | str join '-'
   let release = if ($pre | is-empty) { [1 0] } else {

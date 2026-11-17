@@ -45,10 +45,15 @@ Majority of the time, it's a transformation and does not need assignment.
 
 Two `let` forms exist and behave differently:
 
-- **Statement form** `let name: TYPE = <expr>` is parse-time.
-Enforced type annotations (record/string mismatches reject).
-- **Pipeline form** `<pipeline> | let name` is runtime.
-Its type annotation is checked when the value arrives.
+- **Statement form** `let name: TYPE = <expr>`: the annotation is checked at
+parse time when the parser knows the expression's type (`let n: int = "a"` is a
+parse error), and when the value arrives otherwise (`from json`, `open`, an
+external).
+- **Pipeline form** `<pipeline> | let name: TYPE`: the annotation is checked
+when the value arrives.
+
+The checks made when the value arrives depend on the
+`enforce-runtime-annotations` experimental option.
 
 ## Bash to Nushell Equivalents
 

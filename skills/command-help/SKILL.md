@@ -16,8 +16,9 @@ The query to use for the tool calls: `$query`
 
 If the query is empty, the user is pushing you to read Nushell
 documentation relevant to your recent activity. If you have not
-used the `nu_doc_*` tools or are unable to determine this
-skill's relevance to your session, inform the user and return.
+used the Nushell MCP tools (`nu_exec`, `nu_repl_*`, `nu_doc_*`)
+or are unable to determine this skill's relevance to your
+session, inform the user and return.
 
 ### Exact Commands
 
