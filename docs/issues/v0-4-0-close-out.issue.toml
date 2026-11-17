@@ -68,17 +68,17 @@ index = 8
     completed = false
     subtasks  = [
       {
-        synopsis = 'Run trigger round-trip tests',
+        synopsis = 'Run trigger round-trip tests, perf included',
         llm      = 'automation',
         done     = true
       },
       {
-        synopsis = 'Run vale over SKILL.md prose',
+        synopsis = 'Run vale over SKILL.md prose, after the #25 audit',
         llm      = 'automation',
         done     = true
       },
       {
-        synopsis = 'Sweep versions for coherence',
+        synopsis = 'Sweep versions onto the metadata.version layout',
         llm      = 'augmentation',
         done     = true
       },
