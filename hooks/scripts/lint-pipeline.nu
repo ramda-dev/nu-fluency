@@ -1,54 +1,16 @@
 # nu-fluency: lint the code of an MCP nu_exec or nu_repl_write call
 # (`pipeline` and `input` respectively).
 #
-# Reads tool-input JSON from stdin (Claude Code's hook protocol),
-# pipes the pipeline string through nu-lint, and emits a non-empty
-# response only when nu-lint actually flags something. Silent on
-# clean code, silent when nu-lint isn't installed.
+# Reads tool-input JSON from stdin (Claude Code's hook protocol), lints the
+# code with `scripts/lint.nu` and the narrow `configs/hook.nu-lint.toml`, and
+# emits a non-empty response only when nu-lint actually flags something.
+# Silent on clean code, silent when nu-lint isn't installed or fails.
 #
-# Invoked by hooks.json as `nu <this-script>`; no shebang needed.
-#
-# Probe order:
-#   1. `nu-lint` on PATH (any platform).
-#   2. Windows native cargo install locations:
-#        ~/.local/share/cargo/bin/nu-lint.exe   (XDG-style)
-#        ~/.cargo/bin/nu-lint.exe               (default)
-#   3. WSL fallback: ~/.cargo/bin/nu-lint inside WSL.
-#   4. Nothing → silent pass-through.
+# Invoked by hooks.json as `nu --stdin <this-script>`; no shebang needed.
+# `scripts/lint.nu` finds nu-lint on PATH, in the cargo install folders, or
+# (on Windows) inside WSL, where the config path is converted with `wslpath`.
 
-# Resolve which nu-lint invocation to use on this host. Returns a record
-# with `cmd` + `args`, or `null` if no usable runtime is available.
-def resolve-lint-runner []: nothing -> any {
-    # Use the resolved path (which includes `.exe` on Windows) rather than
-    # the bare command name — nu's `^cmd` form on Windows wants the full
-    # filename to spawn the process reliably.
-    let direct = which nu-lint | first | get path? | default null
-    if $direct != null {
-        return {cmd: $direct, args: [--stdin --format compact]}
-    }
-
-    # Windows native cargo install locations — common when `cargo install
-    # nu-lint` ran on the Windows side but the cargo bin dir isn't on PATH.
-    let home = $env.USERPROFILE? | default ''
-    let xdg_cargo = $home | path join .local share cargo bin nu-lint.exe
-    if ($xdg_cargo | path exists) {
-        return {cmd: $xdg_cargo, args: [--stdin --format compact]}
-    }
-    let std_cargo = $home | path join .cargo bin nu-lint.exe
-    if ($std_cargo | path exists) {
-        return {cmd: $std_cargo, args: [--stdin --format compact]}
-    }
-
-    # WSL fallback: nu-lint installed inside a Linux distro.
-    if (r#'C:\Windows\System32\wsl.exe'# | path exists) {
-        return {
-            cmd: wsl.exe
-            args: [--exec bash -c '~/.cargo/bin/nu-lint --stdin --format compact']
-        }
-    }
-
-    null
-}
+use ../../scripts/lint.nu
 
 # Extract the user code from the JSON payload Claude Code piped in:
 # nu_exec's `pipeline` or nu_repl_write's `input`.
@@ -63,47 +25,12 @@ def extract-pipeline []: record -> string {
 }
 
 # Build the block-reason text shown when nu-lint flags issues.
-def format-reason []: string -> string {
+def format-reason []: list<string> -> string {
     let diagnostics = $in
-    let count = $diagnostics | lines | length
+    let count = $diagnostics | length
     let header = $"nu-lint flagged ($count) issue\(s\) in the just-executed nu code."
     let footer = 'Run `nu-lint --fix <file>` to auto-fix where possible, or `/audit-pipeline` for guidance. To silence specific rules edit `configs/hook.nu-lint.toml`.'
-    [$header '' $diagnostics '' $footer] | str join "\n"
-}
-
-# Run nu-lint against a piped-in pipeline string. Returns the trimmed
-# diagnostics string when there are findings, or null on any condition
-# that means "stay silent" (no runner available, linter errored, no
-# findings).
-def analyze []: string -> oneof<string, nothing> {
-    let pipeline = $in
-    let runner = resolve-lint-runner
-    if $runner == null { return null }
-
-    let plugin_root = $env.CLAUDE_PLUGIN_ROOT? | default .
-    let config_path = $plugin_root | path join configs hook.nu-lint.toml
-    let extra_args = if ($config_path | path exists) { [--config $config_path] } else { [] }
-
-    let result = (
-        $pipeline
-        | run-external $runner.cmd ...$runner.args ...$extra_args
-        | complete
-    )
-    # Linter errored, missing input, etc. → silent. We never want OUR hook
-    # to block on OUR tooling's failure.
-    if $result.exit_code != 0 { return null }
-
-    # nu-lint emits "No violations found!" on a clean pass — non-empty stdout
-    # that does NOT represent a finding. Real diagnostics match the pattern
-    # `<path>:<line>:<col>: <level>(<rule>): …`. Keep only those.
-    let diagnostics = (
-        $result.stdout
-        | lines
-        | where $it =~ '^[^:]+:\d+:\d+:\s+(warning|error|hint)\('
-        | str join "\n"
-    )
-    if ($diagnostics | is-empty) { return null }
-    $diagnostics
+    [$header '' ...$diagnostics '' $footer] | str join "\n"
 }
 
 # Hook entry point. `main` is required because we read `$in` here;
@@ -119,12 +46,14 @@ def main []: string -> nothing {
         return
     }
 
-    let diagnostics = $pipeline | analyze
-    if $diagnostics == null {
+    # Only finding lines count: nu-lint prints "No violations found!" on a
+    # clean pass, and a missing linter or a failed run (a config conflict,
+    # a crash) yields none, so our tooling never blocks the call.
+    let diagnostics = try { $pipeline | lint check hook | get diagnostics } catch { [] }
+    if ($diagnostics | is-empty) {
         print '{}'
         return
     }
 
-    # Real findings → surface as a block reason.
     {decision: block, reason: ($diagnostics | format-reason)} | to json --raw | print
 }

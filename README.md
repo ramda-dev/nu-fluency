@@ -61,12 +61,12 @@ from the status quo in the age of LLM.
 cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
 
-On Windows, `/audit-pipeline` finds a native nu-lint in `%USERPROFILE%\.cargo\bin`
-only when that folder is on `PATH`; the hook also checks that folder directly.
-With nu-lint installed inside WSL, `/audit-pipeline` looks for it on the
-distribution's default `PATH` only, which does not include `~/.cargo/bin`. Link it
-there (`sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`), or the skill falls
-back to the agent.
+`/audit-pipeline` and the lint hook find nu-lint the same way, through
+[`scripts/lint.nu`](scripts/lint.nu): on `PATH`, then in `~/.cargo/bin` (on
+Windows also `%USERPROFILE%\.cargo\bin` and `%USERPROFILE%\.local\share\cargo\bin`),
+then on Windows inside the default WSL distribution, on its `PATH` or in its
+`~/.cargo/bin`. The code reaches nu-lint on stdin, never through a shell, so no
+snippet needs quoting, and inside WSL the config path is converted with `wslpath`.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is
 unavailable. The only downside is losing out on deterministic diagnostics.
@@ -170,9 +170,9 @@ Cases live in `hooks/tests/nu-over-bash.nu`
 
 Post-tool-use hook on MCP `nu_exec` and `nu_repl_write` calls.
 Reads the tool's `pipeline` (or `input`) argument from stdin (JSON),
-pipes it through `nu-lint --stdin --format compact` using the narrow
-`configs/hook.nu-lint.toml`, and surfaces findings as a block reason iff
-there are diagnostics surfaced.
+lints it through `scripts/lint.nu` with the narrow `configs/hook.nu-lint.toml`
+(inside WSL too), and surfaces findings as a block reason iff there are
+diagnostics surfaced.
 
 The hook config is intentionally conservative
 — `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
