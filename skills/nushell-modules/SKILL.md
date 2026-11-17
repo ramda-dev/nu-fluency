@@ -2,8 +2,9 @@
 name: nushell-modules
 description: Use when organizing Nushell code into reusable units (e.g. writing a `mod.nu` file, using the `module` keyword), exporting commands (`export def`/`export alias`), creating environment loaders (`export-env`/`source-env`), defining a `main` command for a module or script, importing another module with `use`, or when the user mentions "nu module", "reusable nu code", "export def/alias", "use module", "nu script organization", "main command", or "main subcommands".
 user-invocable: false
-version: 0.2.0
-compatibility: { nu: '>=0.117.0' }
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Modules

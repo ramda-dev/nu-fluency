@@ -4,6 +4,8 @@ description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when i
 argument-hint: "[<nushell snippet or .nu path>] [--read-only]"
 allowed-tools: ["Bash(nu --version *)", "Bash(command -v nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
 shell: bash
+metadata:
+  version: 0.1.0
 ---
 
 # Audit Pipeline
