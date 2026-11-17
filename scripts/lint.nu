@@ -44,11 +44,11 @@ const DIAGNOSTIC = '^[^:]+:\d+:\d+:\s+(warning|error|hint)\('
 # The cargo install folders to try when nu-lint is not on PATH: `$CARGO_HOME/bin`, then
 # the default and the XDG-style locations.
 def cargo-candidates []: nothing -> list<string> {
-  let windows = $nu.os-info.name == 'windows'
+  let windows = $nu.os-info.name == windows
   let home = if $windows { $env.USERPROFILE? } else { $env.HOME? }
   let exe = if $windows { 'nu-lint.exe' } else { 'nu-lint' }
   let homes = if $home == null { [] } else {
-    [($home | path join '.cargo') ($home | path join '.local' share cargo)]
+    [($home | path join .cargo) ($home | path join .local share cargo)]
   }
   $env.CARGO_HOME? | append $homes | compact | each {|dir| $dir | path join bin $exe }
 }
@@ -62,14 +62,14 @@ def native []: nothing -> oneof<string, nothing> {
 
 # Whether nu-lint may be inside WSL: a Windows host with `wsl.exe`.
 def wsl-host []: nothing -> bool {
-  $nu.os-info.name == 'windows' and (which wsl.exe | is-not-empty)
+  $nu.os-info.name == windows and (which wsl.exe | is-not-empty)
 }
 
 # Run the WSL script with `mode` and its arguments; returns `complete`'s record.
 # The script's line endings are normalized, since a Windows checkout may give it CRLF.
-def wsl-run [mode: string ...args: string]: any -> record<stdout: string, stderr: string, exit_code: int> {
+def wsl-run [mode: string ...args: string]: oneof<string, nothing> -> record<stdout: string, stderr: string, exit_code: int> {
   let script = $WSL_SCRIPT | str replace --all "\r" ''
-  $in | ^wsl.exe --exec sh -c $script sh $mode ...$args | complete
+  $in | wsl.exe --exec sh -c $script sh $mode ...$args | complete
 }
 
 # Where nu-lint is on this host, or null when it cannot be found.
