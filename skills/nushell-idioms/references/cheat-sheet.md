@@ -2,7 +2,7 @@
 
 Pull when you need syntax for a specific operation.
 
-For anti-patterns and recalibration, see the [skill](`../SKILL.md`).
+For anti-patterns and recalibration, see the [skill](../SKILL.md).
 
 ## Data Conversion
 
@@ -56,7 +56,7 @@ For anti-patterns and recalibration, see the [skill](`../SKILL.md`).
 '{"x": 1}' | from json           # {x: 1}
 
 # yaml
-[a b c] | to yaml                # "- 'a'\n- 'b'\n- 'c'\n"
+[a b c] | to yaml                # "- a\n- b\n- c\n"
 "- a\n- b\n- c" | from yaml      # [a b c]
 
 # csv (from csv is type-inferring on numeric columns)
@@ -78,7 +78,7 @@ For anti-patterns and recalibration, see the [skill](`../SKILL.md`).
 "hello" | encode utf-8           # 0x[68656C6C6F]   (binary)
 $bytes  | decode utf-8           # "hello"
 
-# base64 (string in / out; chain decode utf-8 to recover text)
+# base64 (encode gives a string, decode gives binary; chain decode utf-8 to recover text)
 "yes"  | encode base64           # "eWVz"
 "eWVz" | decode base64           # 0x[796573]      (binary)
 ```
@@ -98,8 +98,8 @@ let point: record<x: int, y: int> = {x: 1 y: 2}        # valid
 let point: record<x: int, y: int> = {x: foo y: bar}    # invalid
 # typecheck does not run on data outside of type definition
 let point: record<x: int, y: int> = {a: foo x: 3 y: 9} # valid
-# typecheck runs on all defined keys for non-empty records
-let point: record<x: int, y: int> = {}                 # valid
+# typecheck runs on all defined keys; an empty record fails at runtime
+let point: record<x: int, y: int> = {}                 # invalid (runtime)
 let point: record<x: int, y: int> = {x: 1}             # invalid
 let point: record<x: int, y: int> = {a: foo b: bar}    # invalid
 ```
@@ -130,7 +130,7 @@ $example | upsert alias ally  # {name: alice age: 30 alias: ally}
 # operate on key-value pairs
 $example | items {|k v|
   {($v | describe): [$k $v]}
-}                             # {string: [name alice] int: [age 30]}
+}                             # [{string: [name alice]} {int: [age 30]}]
 ```
 
 ```nu
@@ -168,9 +168,8 @@ let lines: list = [foo 1sec {x: 1} 30 null]            # valid
 # specifying types enables parser typechecking
 let lines: list<string> = [foo bar]                    # valid
 let lines: list<string> = [1 2 3 4]                    # invalid
-# type declaration may be expanded by coercion
-let lines: list<string> = [foo 1 bar 2]                # valid
-$lines | describe # -> list<oneof<string, int>>
+# a mixed list does not satisfy a typed list (checked at runtime)
+let lines: list<string> = [foo 1 bar 2]                # invalid (runtime)
 ```
 
 ### Operations and Accessing
@@ -205,8 +204,8 @@ $example | update 1 9          # [1 9 3 4 5]
 # filter list elements
 $example | where $it > 3       # [4 5]
 # evaluate a predicate
-$example | any { $in > 2 }     # true
-$example | all { $in > 2 }     # false
+$example | any $it > 2         # true
+$example | all $it > 2         # false
 # create new list by iteration
 $example | each {|n|
   $n + 1
@@ -221,9 +220,7 @@ $example | reduce {|n acc|
   $acc + $n
 }                              # 15
 # predicate-bound slicing
-$example | take while {|n|
-  $n < 3
-}                              # [1 2]
+$example | take while $it < 3  # [1 2]
 ```
 
 ```nu
@@ -319,6 +316,7 @@ let s: string = 42      # invalid (parser error)
 "hello"     | str replace "l" "L"            # "heLlo"   (first match)
 "hello"     | str replace --all "l" "L"      # "heLLo"   (all matches)
 "foo123bar" | str replace --regex '\d+' "X"  # "fooXbar"
+"ab"        | str replace --regex '(a)(b)' '$2$1'  # "ba"  (sed's \1 is $1; a named group is ${name})
 
 # trim
 "  pad  " | str trim                         # "pad"
@@ -330,11 +328,11 @@ let s: string = 42      # invalid (parser error)
 ```nu
 # parse template -> table of named captures
 'Nushell 0.113' | parse '{shell} {version}'
-# [[shell version]; [Nushell 0.113]]
+# [[shell version]; [Nushell "0.113"]]   (captures are strings)
 
 # parse with regex (named groups)
 'log: ERROR 42' | parse --regex 'log: (?<lvl>\w+) (?<n>\d+)'
-# [[lvl n]; [ERROR 42]]
+# [[lvl n]; [ERROR "42"]]
 
 # split into list / table
 "a,b,c"        | split row ","       # [a b c]
@@ -445,7 +443,7 @@ $y                                # 6
 const PATH = "/etc/foo"
 $PATH                             # "/etc/foo"
 
-# type annotations (optional; checked at parse time)
+# type annotations (optional; parse-time when the parser can prove a mismatch, else runtime)
 let n: int = 42                   # valid
 let s: string = "alice"           # valid
 let bad: int = "foo"              # invalid (parser error)
@@ -577,9 +575,9 @@ export const VERSION = "1.0"
 # --- caller: namespaced import ---
 use greetings.nu
 greetings              # "greetings and salutations"   (calls main)
-greetings "alice"      # forwards "alice" to main as a positional arg
+greetings hello "world"  # "hi world"   (other exports through the namespace)
 
-# subcommands and exported constants require selective or wildcard import
+# selective and wildcard imports bring names into scope without the prefix
 use greetings.nu hello                 # selective
 hello "world"                          # "hi world"
 
@@ -602,7 +600,7 @@ use mymod double
 double 21                              # 42
 ```
 
-**Dispatch rule**: when a module exports `main`, the bare namespace name invokes `main` and any positional args go to it. Subcommands are not reachable via `namespace subcommand` syntax in that case — use selective (`use foo.nu hello`) or wildcard (`use foo.nu *`) imports. A module **without** `main` does support `namespace subcommand args` dispatch directly.
+**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules` → Dispatch](../../nushell-modules/SKILL.md#dispatch-main-subcommands-and-constants) has a worked example.
 
 ## Useful Flags and Forms
 
@@ -613,16 +611,20 @@ double 21                              # 42
 $record | select --optional a b c          # missing → null
 $record | reject --optional a b            # missing → no error
 $record | get --optional name              # missing → null (postfix `?` is equivalent)
-$list | where { |x| not ($x.flag? | default false) }   # negate predicate; `where` has no --not flag
+$list | where not ($it.flag? | default false)   # negate predicate; `where` has no --not flag
 ```
 
 ### Error and Exit Handling
 
 ```nu
 ^cmd args | complete                       # → { stdout, stderr, exit_code }
-do --ignore-errors { ^cmd args }           # swallow non-zero exit
+do --ignore-errors { ^cmd args }           # swallows a non-zero exit as a statement of its own, as a
+                                           # returned value, or piped to ignore/complete; bound with let or
+                                           # passed as an argument it still raises, and piped on it raises
+                                           # only as a statement of its own (known bug); use complete
 try { ... } catch { |e| ... }              # catch nu errors (see Control Flow)
-^cmd args; $env.LAST_EXIT_CODE             # raw exit code from previous external
+(^cmd args | complete).exit_code           # exit code without raising (a failing ^cmd statement
+                                           # stops the script before $env.LAST_EXIT_CODE is read)
 ```
 
 ### File and Stream Encoding

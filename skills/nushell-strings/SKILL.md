@@ -8,8 +8,10 @@ description: >
   sed/awk/grep habits a quick answer falls back on. Trigger phrases:
   "parse string", "parse lines", "split", "join", "str replace",
   "string interpolation", "regex", "from csv", "from json string".
-version: 0.1.1
 user-invocable: false
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.1.1
 ---
 
 # Nushell Strings
@@ -20,17 +22,17 @@ Syntax reference: [cheat-sheet → Strings](../nushell-idioms/references/cheat-s
 
 ## The four primary tools
 
-### 1. `parse '{name} {pattern}'` — typed extraction
+### 1. `parse '{name} {pattern}'` — structured extraction
 
-The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is `awk '{print $2}'` or a regex with named groups, `parse` is the right tool — chain `get` or `select` to extract from the returned table. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. A common idiom: `ls | get name | parse '{stem}.{ext}'` to split filenames.
+The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is a regex with named groups, or a line whose whole shape is known, `parse` is the right tool — chain `get` or `select` to extract from the returned table. Every capture is a string; convert with `into int` or `into float` before comparing or doing arithmetic. Applied to a list of lines (`lines | parse …`), its last capture takes the rest of each line and lines that do not match are dropped; on one multi-line string it takes the rest of the string. For `awk -F: '{print $(2)}'` use `lines | split column ':' | get column1?`, and for whitespace-separated fields `lines | str trim | split column --regex '\s+'`. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. To split filenames, use `ls | get name | path parse` (`parse '{stem}.{ext}'` splits at the first dot).
 
 ### 2. The `str` namespace
 
-Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Tab-complete `str ` to discover the full set; 25 subcommands as of nu 0.117, two of them (`upcase`, `downcase`) deprecated.
+Covers ~95% of single-string manipulation — case conversion (`uppercase`, `lowercase`, `capitalize`, `camel-case`, `snake-case`, etc.), inspection (`length`, `contains`, `starts-with`, `ends-with`, `index-of`, `distance`), slicing (`substring`), replacement (`replace`, `replace --all`, `replace --regex`), trimming (`trim`, `trim --char`), and reshaping (`reverse`, `expand`). Run `help str` to discover the full set. `str upcase` and `str downcase` are deprecated; write `str uppercase` and `str lowercase`.
 
 ### 3. The `from <format>` family
 
-`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip; `to nuon --serialize` round-trips closures too.
+`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip JSON-native values (strings, numbers, bools, lists, records); `to json` writes a duration or filesize as an int and a datetime as a string, so use NUON to keep nu types. `to nuon --serialize` writes a closure as its source text, which `from nuon` reads back as a string, not a closure.
 
 ### 4. Interpolation: `$"…"` and `$'…'`
 
@@ -42,11 +44,11 @@ The `$` prefix turns either quote form into an interpolation. Inside `(…)`, fu
 
 ## Encoding conversion
 
-`encode utf-8` and `decode utf-8` convert between strings and binary; `encode base64` / `decode base64` handle base64 (both produce/consume strings — chain `decode utf-8` after `decode base64` to recover text from base64-encoded bytes).
+`encode utf-8` and `decode utf-8` convert between strings and binary; `encode base64` / `decode base64` handle base64 (`encode base64` returns a string and `decode base64` returns binary, so chain `decode utf-8` after `decode base64` to recover text).
 
 ## Regex
 
-When `parse` doesn't fit, full regex is available via `str replace --regex` (substitute) and `find --regex` (filter list elements). For extraction with captures, `parse --regex '(?<name>pattern)'` reads more cleanly than `find --regex` followed by post-processing.
+When `parse` doesn't fit, full regex is available via `str replace --regex` (substitute) and `where $it =~ '<re>'` or `find --no-highlight --regex '<re>'` (filter list elements; without `--no-highlight`, `find` wraps matches in ANSI codes that stay in the data). For extraction with captures, `parse --regex '(?<name>pattern)'` reads more cleanly than `find --regex` followed by post-processing.
 
 ## When bash's text-stream model leaks in
 
@@ -54,7 +56,6 @@ Coming from bash, the instinct is "transform text → transform text → final t
 
 ## Pitfalls
 
-- **`echo`** in nu prints a list of values, not a string. Use `print` for stdout-side-effect, `$"…"` for interpolation.
+- **`echo`** in nu returns its arguments (one argument as itself, several as a list); it does not print. Use `print` for stdout side effects and `$"…"` for interpolation.
 - **`'…'` (plain single-quoted) is literal** — no escapes interpreted. For interpolation that still preserves backslashes, use the `$` prefix: `$'…'`. Plain double-quoted `"…"` interprets escapes; `$"…"` adds interpolation on top.
-- **`split row` vs `split column`**: row → list of strings; column → record with auto-named columns. Pick by what you want next.
 - **`parse` returns a table**, not a record. Use `parse … | first | …` if you expect one match.

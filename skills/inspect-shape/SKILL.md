@@ -9,18 +9,25 @@ version: 0.1.2
 
 # Inspect Shape
 
-## Environment
-
-```!
-nu --version
-```
-
-## Usage (`inspect`)
-
-```!
-nu --no-std-lib --no-config-file --commands "inspect --help"
-```
-
 ## Procedure
 
-Call `nu_exec` with `pipeline` set to `<expression> | inspect | ignore`
+Call `nu_exec` with `pipeline` set to:
+
+```nu
+use '${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'
+<expression> | shape
+```
+
+The result is a record. `type` is the detailed type (`list<int>`,
+`table<a: int>`), `length` the number of rows of a list or table, bytes of a
+binary, or members of a cell path, and `value` the value itself, cut to the first three rows of a
+list or table (`shape --max-rows <n>` keeps more). A `nothing` result has
+`type` only. `shape` collects its whole input before cutting it, so put
+`first <n>` before it for an endless or very long stream.
+
+A closure piped to `shape` is run (with no arguments) and its result
+described, so `shape` cannot describe a closure value itself, and it runs any
+side effects the closure has. An error the closure raises is not caught: it
+ends the call as that error. A closure with a required parameter fails with
+`missing_parameter`, and a closure that returns a closure has that one run as
+well.

@@ -1,5 +1,6 @@
 # nu-fluency strict config: broad rule set for explicit `/audit-pipeline` runs.
-# Less conservative than hook mode — surfaces everything nu-lint can flag.
+# Less conservative than hook mode: surfaces everything nu-lint can flag except rules
+# that conflict with another (see [rules]).
 
 [groups]
     posix          = 'warning'
@@ -17,3 +18,8 @@
     naming         = 'hint'
     formatting     = 'hint'
     upstream       = 'warning'
+
+[rules]
+    # Conflicts with `remove_hat_not_builtin`: with both on, nu-lint exits 1 with a
+    # config conflict before linting anything.
+    add_hat_external_commands = 'off'
