@@ -1,6 +1,7 @@
 # Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, including the closure
 # forms added in nu 0.116 and 0.117 but not the two-glob par-each case, the login-config ratio, or the
-# `while` / `if` entries; the case-studies.md items re-measured on 0.117.1 except the stream shapes;
+# `while` / `if` entries, or the formatter crossover point, which it brackets but does not locate; the
+# case-studies.md items re-measured on 0.117.1;
 # debug-profile.md except its 0.115.2 entry counts) and the pitfalls in nushell-control-flow (row conditions,
 # `[] | math sum`), and prints them as one NUON record.
 # Run from any directory: nu --no-config-file <plugin root>/bench/perf/run.nu

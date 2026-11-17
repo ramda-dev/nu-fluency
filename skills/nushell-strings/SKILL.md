@@ -19,9 +19,9 @@ Syntax reference: [cheat-sheet → Strings](../nushell-idioms/references/cheat-s
 
 ## The four primary tools
 
-### 1. `parse '{name} {pattern}'` — typed extraction
+### 1. `parse '{name} {pattern}'` — structured extraction
 
-The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is a regex with named groups, or a line whose whole shape is known, `parse` is the right tool — chain `get` or `select` to extract from the returned table. Applied to a list of lines (`lines | parse …`), its last capture takes the rest of each line and lines that do not match are dropped; on one multi-line string it takes the rest of the string. For `awk -F: '{print $(2)}'` use `lines | split column ':' | get column1?`, and for whitespace-separated fields `lines | str trim | split column --regex '\s+'`. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. To split filenames, use `ls | get name | path parse` (`parse '{stem}.{ext}'` splits at the first dot).
+The strongest single tool. Takes a template with named captures and returns a **table**. Whenever the bash instinct is a regex with named groups, or a line whose whole shape is known, `parse` is the right tool — chain `get` or `select` to extract from the returned table. Every capture is a string; convert with `into int` or `into float` before comparing or doing arithmetic. Applied to a list of lines (`lines | parse …`), its last capture takes the rest of each line and lines that do not match are dropped; on one multi-line string it takes the rest of the string. For `awk -F: '{print $(2)}'` use `lines | split column ':' | get column1?`, and for whitespace-separated fields `lines | str trim | split column --regex '\s+'`. For full regex, `parse --regex '<pattern>'` accepts standard syntax with named captures `(?<name>…)`. To split filenames, use `ls | get name | path parse` (`parse '{stem}.{ext}'` splits at the first dot).
 
 ### 2. The `str` namespace
 

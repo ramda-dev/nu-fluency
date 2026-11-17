@@ -328,11 +328,11 @@ let s: string = 42      # invalid (parser error)
 ```nu
 # parse template -> table of named captures
 'Nushell 0.113' | parse '{shell} {version}'
-# [[shell version]; [Nushell 0.113]]
+# [[shell version]; [Nushell "0.113"]]   (captures are strings)
 
 # parse with regex (named groups)
 'log: ERROR 42' | parse --regex 'log: (?<lvl>\w+) (?<n>\d+)'
-# [[lvl n]; [ERROR 42]]
+# [[lvl n]; [ERROR "42"]]
 
 # split into list / table
 "a,b,c"        | split row ","       # [a b c]

@@ -61,8 +61,8 @@ from the status quo in the age of LLM.
 cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
 
-On Windows, a native nu-lint in `%USERPROFILE%\.cargo\bin` is found only when that
-folder is on `PATH` (the hook also checks it directly; `/audit-pipeline` does not).
+On Windows, `/audit-pipeline` finds a native nu-lint in `%USERPROFILE%\.cargo\bin`
+only when that folder is on `PATH`; the hook also checks that folder directly.
 With nu-lint installed inside WSL, `/audit-pipeline` looks for it on the
 distribution's default `PATH` only, which does not include `~/.cargo/bin`. Link it
 there (`sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`), or the skill falls

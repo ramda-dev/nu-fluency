@@ -6,7 +6,7 @@ How to carry `$env` across separate nu invocations through a file. Prefer a pers
 # Load
 let __persisted = try {
     open --raw $path | from json
-    | reject --optional PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
+    | reject --optional PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD SHLVL
 } catch { {} }
 for entry in ($__persisted | transpose key value) {
     try { load-env { ($entry.key): $entry.value } } catch {}
@@ -16,7 +16,7 @@ for entry in ($__persisted | transpose key value) {
 
 # Save
 $env
-| reject --optional ENV_CONVERSIONS config PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
+| reject --optional ENV_CONVERSIONS config PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD SHLVL
 | record each {|k v| try { $v | to json --raw | ignore; [$k $v] } catch { null } }
 | to json --raw
 | save --force --raw $path

@@ -141,7 +141,7 @@ Keep a change only when all four hold:
   `to nuon` output. A variant that turns
   the empty case from `[]` into an error is not equal. `par-each` without `--keep-order` can return a different
   order on any run (13 distinct orders in 30 runs over nine elements), so compare it sorted (in `probe compare`,
-  end both closures with `| sort`, or time `par-each --keep-order`, which pattern 6 recommends anyway), and say in the
+  end both closures with `| sort`, or time `par-each --keep-order`, which the known-bug notes recommend when the unordered form is slower), and say in the
   commit that `each` made the order deterministic.
 
 If the two variants disagree, stop timing: one of them is wrong, and it is as likely to be the original. Settle
@@ -175,8 +175,8 @@ Try 1 to 5 in that order. 6 and 7 apply wherever `probe hot` points at them.
    code ([figures](references/cost-model.md#par-each)).
 7. **A cheaper builtin for the same job**, when `probe hot` puts the time on one closure-free line:
    `describe | str replace --regex '<.*' ''` for `describe | split words | first` (0.36 ms to 0.005 ms), a builtin
-   `match` for a closure-taking dispatch helper. `probe entries` `total` reads 0 to 0 for such a change (the `str
-   replace` shows up only in `closure-or-value`): only the self-time view finds it. Check the arms first: the `str replace` form differs from `split words` on
+   `match` for a closure-taking dispatch helper. `probe entries` `total` reads 0 to 0 for the `str replace`
+   swap (it shows up only in `closure-or-value`): only the self-time view finds it. Check the arms first: the `str replace` form differs from `split words` on
    `cell-path` and on a stream whose description has no `<` (`byte stream`, `table (stream)`), and the
    [case studies](references/case-studies.md#a-cheaper-builtin) give the exact drop-in.
 

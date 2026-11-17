@@ -40,7 +40,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block that runs `hide-env` or encloses or calls the code that does; calling `hide-env` from a `def --env` helper does not help'
+    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a `do` closure or command body that runs `hide-env` or encloses or calls the code that does (an `if`, `try`, `match` or `for` body shares the outer scope and is not affected); calling `hide-env` from a `def --env` helper does not help'
     workaround: 'run `hide-env` before any `--env` call in that block and in every block enclosing or calling it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i`'
     repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
     upstream: null
