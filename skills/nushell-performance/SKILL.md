@@ -29,7 +29,7 @@ first, count entries second, edit last.
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
 entry costs with `probe calibrate` after a nu upgrade or on another machine (the repository's
-`bench/perf/run.nu` re-measures the rest). Figures inline below come from the
+`bench/perf/run.nu` re-measures the rest of the 0.117.1 figures; its header lists what it skips). Figures inline below come from the
 same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.115.2-nightly (the
 [case studies](references/case-studies.md) mark each one re-run since).
 

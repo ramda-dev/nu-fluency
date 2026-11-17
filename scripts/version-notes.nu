@@ -164,7 +164,8 @@ def reference []: nothing -> string {
     'Behavior that depends on an experimental option. The skills print a note as a'
     'condition when the shell that runs the code could have the option set either way'
     '(`debug experimental-options` lists the settings), and as fact when the default'
-    'of the option in the running nu is the setting the note warns about.'
+    'of the option in the running nu is the setting the note warns about. Run a repro'
+    "with the option set as shown: `nu --experimental-options '[pipefail=false]' -c '<repro>'`."
     ''
     '| Setting | Symptom | Repro | Workaround |'
     '|---|---|---|---|'
@@ -194,7 +195,12 @@ def 'main render' [--write]: nothing -> any {
 
 # Fail when the reference file does not match the data file.
 def 'main check' []: nothing -> nothing {
-  if (open --raw $REFERENCE | str replace --all "\r\n" "\n") != (reference) {
+  let known = debug experimental-options | get identifier
+  let missing = notes | where kind == option and $it.option.name not-in $known
+  if ($missing | is-not-empty) {
+    error make --unspanned {msg: $"no experimental option in nu (version | get version): ($missing | each { $in.option.name } | str join ', ')"}
+  }
+  if (open --raw $REFERENCE | str replace --all "\r\n" "\n" | str trim --right) != (reference | str trim --right) {
     error make --unspanned {msg: 'nushell-diagnostics.md is stale; run `render --write`'}
   }
 }

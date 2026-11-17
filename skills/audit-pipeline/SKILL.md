@@ -2,7 +2,7 @@
 name: audit-pipeline
 description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed or cannot be found) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
 argument-hint: "[<nushell snippet or .nu path>] [--read-only]"
-allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
+allowed-tools: ["Bash(nu --version *)", "Bash(command -v nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
 shell: bash
 ---
 
@@ -41,7 +41,7 @@ extra leading `/`, as for the config path below).
 ## Environment
 
 - Nushell version: !`nu --version 2>/dev/null || echo 'not found'`
-- Nu-Lint native installation path: !`which nu-lint 2>/dev/null || echo 'not found'`
+- Nu-Lint native installation path: !`command -v nu-lint 2>/dev/null || echo 'not found'`
 - Nu-Lint WSL installation path: !`wsl.exe --exec which nu-lint 2>/dev/null || echo 'not found'`
 - Strict config path inside WSL: !`wsl.exe --exec wslpath -u '${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml' 2>/dev/null || echo 'not found'`
 

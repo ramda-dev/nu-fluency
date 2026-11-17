@@ -10,7 +10,7 @@ when they load, the rows that apply to the running nu.
 | Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |
 |---|---|---|---|---|---|---|---|
 | hide-env-after-env-call | `hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block that runs `hide-env` or encloses or calls the code that does; calling `hide-env` from a `def --env` helper does not help | `$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }` | run `hide-env` before any `--env` call in that block and in every block enclosing or calling it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i` | 0.114.1 | 0.117.0 | open |  |
-| collect-keep-env-ignored | `collect --keep-env {…}` does not pass the closure''s `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables | `[1 2 3] \| collect --keep-env {\|x\| $env.LAST = 3 }; $env.LAST? == null` | use `do --env` (or `def --env` for a command) | 0.114.1 | 0.117.0 | open |  |
+| collect-keep-env-ignored | `collect --keep-env {…}` does not pass the closure's `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables | `[1 2 3] \| collect --keep-env {\|x\| $env.LAST = 3 }; $env.LAST? == null` | use `do --env` (or `def --env` for a command) | 0.114.1 | 0.117.0 | open |  |
 | try-escapes-under-ignore | a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } \| ignore` is the last statement of a command body, a closure (`do`, `each`, `where`, …) or a script, or a command or `do` block whose output comes from such a `try`, directly or through further calls, is piped to `ignore` (`f \| ignore`) | `def f [] { try { error make {msg: inner} } catch { "caught" } }; f \| ignore` | bind the result (`let _ = f`, `let _ = try { … }`), or end the body with `null` | 0.114.1 | 0.117.0 | open |  |
 | pipefail-skips-bound-pipelines | even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used as a value inside a subexpression (an argument, a condition), or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own | `try { let n = ^false \| lines \| length; "no error" } catch { "error" }` | capture the external with `complete` and test its `exit_code` | 0.114.1 | 0.117.0 | open |  |
 | later-statement-in | in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but a body written as a block (an `if` branch, or a `match` arm in `{…}`) gets an empty `$in` | `[1 2] \| do { let y = 3; if ($in \| is-empty) { "e" } else { $in \| length } }` | bind the input first (`let xs = $in`), or write `$in \| if ($in \| …) { … }` | 0.114.1 | 0.117.0 | open |  |
@@ -22,7 +22,8 @@ when they load, the rows that apply to the running nu.
 Behavior that depends on an experimental option. The skills print a note as a
 condition when the shell that runs the code could have the option set either way
 (`debug experimental-options` lists the settings), and as fact when the default
-of the option in the running nu is the setting the note warns about.
+of the option in the running nu is the setting the note warns about. Run a repro
+with the option set as shown: `nu --experimental-options '[pipefail=false]' -c '<repro>'`.
 
 | Setting | Symptom | Repro | Workaround |
 |---|---|---|---|

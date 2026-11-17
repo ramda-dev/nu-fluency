@@ -9,7 +9,8 @@
 #                   newest, `until` the first fixed version once known (null: open).
 #
 # Prose is written for a skill reader: `symptom` says what goes wrong, `workaround`
-# what to write instead. After editing, regenerate the reference table with
+# what to write instead. Single-quoted strings have no escapes: write a string
+# that holds an apostrophe in double quotes. After editing, regenerate the reference table with
 # `nu --no-config-file scripts/version-notes.nu render --write`. Some skills also
 # state a workaround in their own prose; when a bug gets an `until`, search the
 # skills for its workaround and update those lines too.
@@ -51,7 +52,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`collect --keep-env {…}` does not pass the closure''s `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables'
+    symptom: "`collect --keep-env {…}` does not pass the closure's `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables"
     workaround: 'use `do --env` (or `def --env` for a command)'
     repro: '[1 2 3] | collect --keep-env {|x| $env.LAST = 3 }; $env.LAST? == null'
     upstream: null

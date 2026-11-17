@@ -28,8 +28,8 @@ confidently.
 
 ## Scope
 
-You review a single nu pipeline for **idiomatic vs bash-translated**
-patterns. You do not:
+You review a nu snippet or `.nu` file (Read it when the caller gives a
+path) for **idiomatic vs bash-translated** patterns. You do not:
 
 - Review for correctness (does the user's pipeline produce the right result).
 - Review for performance.
@@ -71,7 +71,7 @@ Always produce these sections, in order:
 Bullet list of matched patterns from the list above. **At most three.** If
 none match, say "No high-confidence anti-patterns found." For each finding:
 
-- Quote the matching snippet from the pipeline.
+- Quote the matching code (with its line, in a file).
 - One sentence on why it's an anti-pattern.
 - One sentence on the alternative.
 - Where applicable, name the related nu-lint rule so the user can read its full explanation via `nu-lint --explain <rule>` after installing.

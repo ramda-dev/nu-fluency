@@ -22,4 +22,4 @@ $env
 | save --force --raw $path
 ```
 
-Both sides drop the per-process variables nu sets itself (including `OLDPWD`, which `cd` sets), so a saved value never overwrites the running process's own; configuration such as `NU_LIB_DIRS` is carried over like any other variable. Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each` (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).
+Both sides drop the per-process variables nu sets itself (including `OLDPWD`, which `cd` sets), so a saved value never overwrites the running process's own; configuration such as `NU_LIB_DIRS` is carried over like any other variable. Load is a per-key `for`+`try`, so one bad value does not stop the rest; save drops every value JSON cannot hold with `record each`, and durations, filesizes and datetimes come back as ints and strings (use `to nuon` / `from nuon` when they must keep their type) (a `null` result drops the field; see [`nushell-records`](../../nushell-records/SKILL.md)).

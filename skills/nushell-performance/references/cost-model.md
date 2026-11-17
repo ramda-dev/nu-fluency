@@ -2,7 +2,8 @@
 
 Measured with the kit in [`scripts/probe.nu`](../scripts/probe.nu) on nu 0.117.1-nightly, one WSL2 laptop with
 22 CPUs, November 2026. Trust the ratios; re-measure the entry costs with `probe calibrate` after a nu upgrade
-or on another machine (the repository's `bench/perf/run.nu` re-measures the rest). Library case studies measured on an older nu are in [case studies](case-studies.md).
+or on another machine (the repository's `bench/perf/run.nu` re-measures the rest of
+these figures; its header lists what it skips). Library case studies measured on an older nu are in [case studies](case-studies.md).
 
 ## Entry cost
 
@@ -45,7 +46,7 @@ difference) before assuming a body is cheap.
 
 - Each nested entry of a closure command costs about 3 us per outer element in either style, four to seven
   times the outer body.
-- A closure-free builtin costs a half to a third of the entry cost of a closure command as timed (less once
+- A closure-free builtin costs a half to a quarter of the entry cost of a closure command as timed (less once
   the timing harness is subtracted) and a fifteenth or less per element.
 - `$list ++= [x]` inside a loop: mapping 1000 elements, `each` 0.6 ms, `for` with `++=` 4.7 ms, `for` with
   `append` 21 ms. The two tie up to about 10 elements; from 20 on `each` wins, by 2.7x at 200.

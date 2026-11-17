@@ -29,7 +29,7 @@ Covers ~95% of single-string manipulation — case conversion (`uppercase`, `low
 
 ### 3. The `from <format>` family
 
-`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip. `to nuon --serialize` writes a closure as its source text, which `from nuon` reads back as a string, not a closure.
+`from json`, `from csv`, `from yaml`, `from toml`, `from nuon` each read a string and return structured data. `from nuon` is a JSON-superset parser — it accepts both nu's native form and plain JSON. The pair `from json` and `to json` round-trip JSON-native values (strings, numbers, bools, lists, records); `to json` writes a duration or filesize as an int and a datetime as a string, so use NUON to keep nu types. `to nuon --serialize` writes a closure as its source text, which `from nuon` reads back as a string, not a closure.
 
 ### 4. Interpolation: `$"…"` and `$'…'`
 
