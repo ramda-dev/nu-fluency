@@ -5,7 +5,7 @@
 #                   nu that has the option, as a condition, or as fact when that
 #                   setting is the option's default.
 # kind: diagnostic  a Nushell bug the skills work around. `since` is the oldest version that
-#                   reproduces it (0.114.1 was the oldest checked), `reproduced` the
+#                   reproduces it (0.114.1, `OLDEST_CHECKED` in the script, was the oldest checked), `reproduced` the
 #                   newest, `until` the first fixed version once known (null: open).
 #
 # Prose is written for a skill reader: `symptom` says what goes wrong, `workaround`
@@ -51,7 +51,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: "a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } | ignore` is the last statement of a command body, a `do` block or a script, or a command or `do` block whose body ends in the `try` is piped to `ignore` (`f | ignore`)"
+    symptom: "a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } | ignore` is the last statement of a command body, a closure (`do`, `each`, `where`, …) or a script, or a command or `do` block whose output comes from such a `try`, directly or through further calls, is piped to `ignore` (`f | ignore`)"
     workaround: "bind the result (`let _ = f`, `let _ = try { … }`), or end the body with `null`"
     repro: 'def f [] { try { error make {msg: inner} } catch { "caught" } }; f | ignore'
     upstream: null
@@ -63,7 +63,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: 'even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used in a subexpression, or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own'
+    symptom: 'even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used as a value inside a subexpression (an argument, a condition), or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own'
     workaround: 'capture the external with `complete` and test its `exit_code`'
     repro: 'try { let n = ^false | lines | length; "no error" } catch { "error" }'
     upstream: null

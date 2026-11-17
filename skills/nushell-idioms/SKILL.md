@@ -73,7 +73,7 @@ The checks made when the value arrives depend on the
 | `read -r line` | (rare; nu is non-interactive by default in scripts) |
 | `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
 | `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout, returns nothing and does not fail on a non-zero exit; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
-| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; an external that fails mid-pipeline (`^false \| lines`) does not stop it when that pipeline is bound with `let`, sits in a subexpression or is the value a command, closure or `do` block returns (see the known-bug notes), so use `complete` and check `exit_code` there) |
+| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; an external that fails mid-pipeline (`^false \| lines`) does not stop it when that pipeline is bound with `let`, is used as a value inside a subexpression (an argument, a condition) or is the value a command, closure or `do` block returns (see the known-bug notes), so use `complete` and check `exit_code` there) |
 
 ## Anti-Patterns: Common Mistakes
 

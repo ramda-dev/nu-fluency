@@ -2,8 +2,8 @@
 
 Optimisations tried on one Nushell library's real code: its validator, completers, hooks and helpers. Unless
 an item says otherwise, it was measured on nu 0.115.2-nightly in September 2026 and not re-run; closure entry
-cost roughly seven times as much then, so the gains would be smaller today. The figures show how the heat rule
-and the keep rule decide, not what a rewrite will gain now.
+cost roughly seven times as much then, so the gains would be smaller today. The figures show how the heat gate
+and the keep conditions in the skill's Workflow decide, not what a rewrite will gain now.
 
 ## Heat
 

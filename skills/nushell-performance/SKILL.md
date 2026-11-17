@@ -19,7 +19,7 @@ metadata:
 
 In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by what
 each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about twice
-what entering a `for`, an `if` or a custom `def` costs (three or more for `record each`, `record where` and
+what entering a `for`, a `match` or a custom `def` costs (three or more for `record each`, `record where` and
 `generate`), whatever the input size; those ratios include the timing harness, and net of it the gap is wider
 ([cost model](references/cost-model.md)). Per element, a loop body costs a little over half what the same
 closure body does, but a loop that builds a list copies it on every step. And in a shell library most wall

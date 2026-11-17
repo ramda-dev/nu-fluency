@@ -16,7 +16,7 @@ for entry in ($__persisted | transpose key value) {
 
 # Save
 $env
-| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
+| reject --optional ENV_CONVERSIONS config PWD FILE_PWD CURRENT_FILE NU_VERSION PROCESS_PATH LAST_EXIT_CODE CMD_DURATION_MS OLDPWD
 | record each {|k v| try { $v | to json --raw | ignore; [$k $v] } catch { null } }
 | to json --raw
 | save --force --raw $path

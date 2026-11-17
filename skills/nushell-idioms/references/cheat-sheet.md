@@ -130,7 +130,7 @@ $example | upsert alias ally  # {name: alice age: 30 alias: ally}
 # operate on key-value pairs
 $example | items {|k v|
   {($v | describe): [$k $v]}
-}                             # {string: [name alice] int: [age 30]}
+}                             # [{string: [name alice]} {int: [age 30]}]
 ```
 
 ```nu

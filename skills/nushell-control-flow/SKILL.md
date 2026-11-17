@@ -122,5 +122,5 @@ For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` ove
 ## Pitfalls
 
 - **`each` for env mutation** is the most common iteration bug. If the loop body touches `$env`, use `for` ([`nushell-env-scoping`](../nushell-env-scoping/SKILL.md) owns the rules).
-- **A `try`/`catch` whose output reaches `ignore` can stop catching**, both when `try { … } | ignore` ends a body and when a command whose body ends in `try` is piped to `ignore` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the result instead (`let _ = f`, `let _ = try { … }`).
+- **A `try`/`catch` whose output reaches `ignore` can stop catching**, both when `try { … } | ignore` ends a body and when a command whose result comes from a `try`, directly or through another command, is piped to `ignore` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the result instead (`let _ = f`, `let _ = try { … }`).
 - **`break` and `continue`** exist in `for`, `while` and `loop`. To transform a stream, prefer `take while` / `skip while` / `first N`; for a small scan that exits early and runs many times, a `for` with `break` is cheaper than `any` (see [`nushell-performance`](../nushell-performance/SKILL.md), pattern 4).

@@ -1,6 +1,6 @@
 ---
 name: audit-pipeline
-description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
+description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed or cannot be found) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
 argument-hint: "[<nushell snippet or .nu path>] [--read-only]"
 allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
 shell: bash
@@ -103,7 +103,8 @@ Else, follow the [fallback](#fallback) instructions.
    applies, so the agent adds it to its recommendation: if the WSL
    installation path was an absolute path but the strict config path inside
    WSL was `not found`, "nu-lint was found in WSL, but `wslpath` could not
-   convert the plugin's config path"; on a Windows host otherwise, "if
+   convert the plugin's config path; check that the plugin folder is on a
+   drive WSL mounts"; on a Windows host otherwise, "if
    nu-lint is installed inside WSL in `~/.cargo/bin`, link it with
    `sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`".
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
