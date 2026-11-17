@@ -2,7 +2,7 @@
 name: nushell-performance
 description: >
   Finds and fixes slow Nushell code: establish heat, profile with
-  `probe hot`, count closure-command entries, then apply the cheapest
+  `probe hot`, count closure-command entries, then apply the first
   pattern that fits. Use when nu code feels slow or is about to be
   optimised, benchmarked or profiled (prompt hooks, Tab completers,
   `export-env` startup, per-element helpers, choosing between `for` and
@@ -28,12 +28,13 @@ first, count entries second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
-absolutes with `probe calibrate` after a nu upgrade or on another machine. Figures inline below come from the
+entry costs with `probe calibrate` after a nu upgrade or on another machine (the repository's
+`bench/perf/run.nu` re-measures the rest). Figures inline below come from the
 same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.115.2-nightly (the
 [case studies](references/case-studies.md) mark each one re-run since).
 
 ```nu
-use ${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu
+use '${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'
 ```
 
 Known bugs for the running nu, if any:
@@ -44,7 +45,7 @@ Known bugs for the running nu, if any:
 
 Three tiers of entry cost:
 
-- **Cheapest, about 3 us**: `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, and most
+- **Cheapest, about 3 us**: `for` (and, unmeasured, `while` and `if`), `match`, `try`, `do {}`, a custom `def` call, and most
   closure-free builtins, including `update` / `insert` / `default` / `group-by` / `sort-by` given a value or a
   column name.
 - **About two to four times that**: the commands that call a closure for each element (`each`, `where`, `any`,
@@ -133,8 +134,8 @@ Keep a change only when all four hold:
   is itself empty, a string with an embedded newline, keys that collide. For a change that spans a module,
   run the old tree and the new tree in two processes, check that the old output is not empty, and diff their
   `to nuon` output. A variant that turns
-  the empty case from `[]` into an error is not equal. `par-each` without `--keep-order` returns a different
-  order on each run (13 distinct orders in 30 runs over nine elements), so compare it sorted, and say in the
+  the empty case from `[]` into an error is not equal. `par-each` without `--keep-order` can return a different
+  order on any run (13 distinct orders in 30 runs over nine elements), so compare it sorted, and say in the
   commit that `each` made the order deterministic.
 
 If the two variants disagree, stop timing: one of them is wrong, and it is as likely to be the original. Settle

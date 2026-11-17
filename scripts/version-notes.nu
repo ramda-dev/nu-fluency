@@ -100,6 +100,8 @@ def notes []: nothing -> list<record> {
     if $keys == null { error make --unspanned {msg: $"($id): kind must be option or diagnostic"} }
     let missing = $keys | where $it not-in ($n | columns)
     if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
+    let prose = [id symptom workaround repro] | where ($n | get $it | describe) != string
+    if ($prose | is-not-empty) { error make --unspanned {msg: $"($id): not a string: ($prose | str join ', ')"} }
     if ($n.skills | describe) !~ '^list<string>' { error make --unspanned {msg: $"($id): skills must be a non-empty list of strings"} }
     if $n.kind == option and (($n.option | describe) !~ '^record' or ($n.option.name? | describe) != string or ($n.option.enabled? | describe) != bool) {
       error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
@@ -110,8 +112,12 @@ def notes []: nothing -> list<record> {
       let bad = [$n.since $n.reproduced] | where ($it | describe) != string or $it !~ $VERSION
       let bad = if $n.until != null and (($n.until | describe) != string or $n.until !~ $VERSION) { $bad | append [$n.until] } else { $bad }
       if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version string: ($bad | to nuon)"} }
+      if (older $n.reproduced $n.since) { error make --unspanned {msg: $"($id): reproduced is older than since"} }
+      if $n.until != null and not (older $n.reproduced $n.until) { error make --unspanned {msg: $"($id): until must be newer than reproduced"} }
     }
   }
+  let dupes = $notes | get id | uniq --repeated
+  if ($dupes | is-not-empty) { error make --unspanned {msg: $"duplicate id: ($dupes | str join ', ')"} }
   $notes
 }
 
@@ -170,6 +176,7 @@ def reference []: nothing -> string {
 # Notes for one skill that apply to the running nu, as markdown bullets.
 def main [skill: string]: nothing -> string {
   try {
+    if not ($SKILLS | path join $skill SKILL.md | path exists) { error make --unspanned {msg: $"no skill ($skill)"} }
     let running = version | get version
     let bullets = applicable $skill | each { bullet $running }
     let lines = if (older $running $OLDEST_CHECKED) {

@@ -45,6 +45,18 @@
     upstream: null
   }
   {
+    id: collect-keep-env-ignored
+    kind: diagnostic
+    skills: [nushell-idioms]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: '`collect --keep-env {…}` does not pass the closure''s `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables'
+    workaround: 'use `do --env` (or `def --env` for a command)'
+    repro: '[1 2 3] | collect --keep-env {|x| $env.LAST = 3 }; $env.LAST? == null'
+    upstream: null
+  }
+  {
     id: try-escapes-under-ignore
     kind: diagnostic
     skills: [nushell-control-flow]

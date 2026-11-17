@@ -45,7 +45,7 @@ The `$` prefix turns either quote form into an interpolation. Inside `(…)`, fu
 
 ## Regex
 
-When `parse` doesn't fit, full regex is available via `str replace --regex` (substitute) and `find --regex` (filter list elements). For extraction with captures, `parse --regex '(?<name>pattern)'` reads more cleanly than `find --regex` followed by post-processing.
+When `parse` doesn't fit, full regex is available via `str replace --regex` (substitute) and `where $it =~ '<re>'` or `find --no-highlight --regex '<re>'` (filter list elements; without `--no-highlight`, `find` wraps matches in ANSI codes that stay in the data). For extraction with captures, `parse --regex '(?<name>pattern)'` reads more cleanly than `find --regex` followed by post-processing.
 
 ## When bash's text-stream model leaks in
 

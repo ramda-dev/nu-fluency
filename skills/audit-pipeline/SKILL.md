@@ -27,8 +27,9 @@ space is put between a backtick and an adjacent `!`, after which a `!` that
 starts a word gets the backslash too (`` `a b`! `` arrives as `` `a b` \! ``,
 and a word-initial `!` before a backtick as `\!`, a space and the backtick).
 Undo both wherever you use the snippet (the heredoc or the fallback agent's
-prompt). A space that was already before the `!` cannot be
-told apart from an inserted one, so keep it only where the code needs it.
+prompt). A space that was already next to the `!` (before it, or
+between it and a backtick) cannot be told apart from an inserted one, so keep
+it only where the code needs it.
 
 If the snippet is empty (no arguments, only `--read-only`, or the block above
 still shows the placeholder), lint the Nushell code you most recently wrote or
@@ -105,7 +106,8 @@ Else, follow the [fallback](#fallback) instructions.
    WSL was `not found`, "nu-lint was found in WSL, but `wslpath` could not
    convert the plugin's config path; check that the plugin folder is on a
    drive WSL mounts"; on a Windows host otherwise, "if
-   nu-lint is installed inside WSL in `~/.cargo/bin`, link it with
+   nu-lint is installed in `%USERPROFILE%\.cargo\bin`, add that folder to
+   `PATH`; if it is installed inside WSL in `~/.cargo/bin`, link it with
    `sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`".
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the

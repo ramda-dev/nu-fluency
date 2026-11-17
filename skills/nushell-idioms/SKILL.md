@@ -16,8 +16,8 @@ metadata:
 
 Nushell is a **structural-data-first** shell: parse text into records, lists and
 tables once, transform them with pipelines, and render text only at the end. The
-biggest source of mistakes is reaching for bash patterns, whose text streams
-dominate training data and cloud intuition about nu. This skill names the common
+biggest source of mistakes is reaching for bash patterns: bash dominates training
+data, and its text streams cloud intuition about nu. This skill names the common
 traps and their idiomatic replacements.
 
 Known bugs and option-dependent behavior for the running nu, if any:
@@ -73,7 +73,7 @@ The checks made when the value arrives depend on the
 | `read -r line` | (rare; nu is non-interactive by default in scripts) |
 | `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
 | `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout, returns nothing and does not fail on a non-zero exit; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
-| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; an external that fails mid-pipeline (`^false \| lines`) does not stop it when that pipeline is bound with `let`, is used as a value inside a subexpression (an argument, a condition) or is the value a command, closure or `do` block returns (see the known-bug notes), so use `complete` and check `exit_code` there) |
+| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; an external that fails mid-pipeline (`^false \| lines`) does not stop it when that pipeline is bound with `let`, is used as a value inside a subexpression (an argument, a condition) or is the value a command, closure or `do` block returns (see the [known-bug notes](./references/nushell-diagnostics.md)), so use `complete` and check `exit_code` there) |
 
 ## Anti-Patterns: Common Mistakes
 
@@ -104,7 +104,7 @@ Commands use closures
 (e.g. `[par-]each`, `items`, `reduce`, `upsert`)
 and, by default, do not propagate environment changes.
 
-- `do --env` (or `def --env` for a command) enables `$env` propagation; `collect --keep-env` does not.
+- `do --env` (or `def --env` for a command) enables `$env` propagation; `collect --keep-env` does not, despite its help text ([known bug](./references/nushell-diagnostics.md)).
 
 ```nu
 # anti-pattern — `each` runs a closure, not a block
@@ -302,6 +302,10 @@ Use the mapping below to compound relevant sibling skills:
 [`nushell-modules`](../nushell-modules/SKILL.md)
 
 - Load for writing/organizing nu code into reusable units.
+
+[`nushell-performance`](../nushell-performance/SKILL.md)
+
+- Load when nu code is slow or about to run over large inputs.
 
 ## References
 

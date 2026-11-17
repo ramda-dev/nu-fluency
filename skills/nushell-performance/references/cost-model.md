@@ -1,8 +1,8 @@
 # Cost model: measured figures
 
 Measured with the kit in [`scripts/probe.nu`](../scripts/probe.nu) on nu 0.117.1-nightly, one WSL2 laptop with
-22 CPUs, November 2026. Trust the ratios; re-measure the absolutes with `probe calibrate` after a nu upgrade or
-on another machine. Library case studies measured on an older nu are in [case studies](case-studies.md).
+22 CPUs, November 2026. Trust the ratios; re-measure the entry costs with `probe calibrate` after a nu upgrade
+or on another machine (the repository's `bench/perf/run.nu` re-measures the rest). Library case studies measured on an older nu are in [case studies](case-studies.md).
 
 ## Entry cost
 
@@ -82,5 +82,5 @@ against 27 ms for the `items` form.
 - At 1741 elements the unordered form took 26-29 ms in every round, slower than `each` (8-9 ms), while
   `--keep-order` took 2.1-2.3 ms (the known bug in the
   [diagnostics table](../../nushell-idioms/references/nushell-diagnostics.md)); `--threads 4` did not cure it.
-- Without `--keep-order` it returns a different order on each run (13 distinct orders in 30 runs over nine
+- Without `--keep-order` it can return a different order on any run (13 distinct orders in 30 runs over nine
   elements).

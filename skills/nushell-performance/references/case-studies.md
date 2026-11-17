@@ -28,8 +28,8 @@ and the keep conditions in the skill's Workflow decide, not what a rewrite will 
 ## Entries predict time
 
 One 36-rule validator written three ways: 13 entries 3.8 ms, 55 entries 5.8 ms, 141 entries 10.7 ms. Exact
-entry counts from `debug profile` read 13 / 141 / 55 where matching command names in source text read
-35 / 160 / 65.
+entry counts from `debug profile` read 13 / 55 / 141 where matching command names in source text read
+35 / 65 / 160.
 
 ## Restructured state
 
