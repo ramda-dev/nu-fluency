@@ -54,7 +54,7 @@ them, say so.** Don't manufacture issues to look useful.
 | `try { $x.field } catch { … }` where the catch returns a default | `if_null_to_default` (related) | Use `$x.field?` postfix instead. |
 | `print` followed by another `print` and then a return expression | `merge_multiline_print` | Last expression is the return; consider returning a record instead. |
 | `($x \| get N)` for list indexing | `unchecked_get_index` (related) | `$x.N` is the idiomatic form. |
-| `reject -i`, `get -i` or `select -i` (the removed `--ignore-errors` flag) | parse error (`unknown_flag`) | Use `--optional` (or `-o`). |
+| `reject -i`, `get -i` or `select -i` (the removed `--ignore-errors` flag) | (none; Nushell parse error `nu::parser::unknown_flag`) | Use `--optional` (or `-o`). |
 | `transpose key value \| reduce -f {} { upsert }` for record rebuilding | (none — heuristic) | Consider `record where` (filter) or `record each` (map). |
 
 That is the full list. **Do not add patterns from your own intuition** —

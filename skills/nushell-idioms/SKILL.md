@@ -72,7 +72,7 @@ The checks made when the value arrives depend on the
 | `if [[ "$x" == "y" ]]; then …; fi` | `if $x == "y" { … }` |
 | `read -r line` | (rare; nu is non-interactive by default in scripts) |
 | `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
-| `cmd 2>/dev/null` | `(cmd \| complete).stdout` (stdout only); `cmd e>\| ignore` prints stdout but returns nothing; `cmd \| complete` keeps both for inspection |
+| `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout but returns nothing; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
 | `set -e` | (built-in; pipelines stop on first error unless `try` wraps) |
 
 ## Anti-Patterns: Common Mistakes
@@ -112,7 +112,7 @@ and, by default, do not propagate environment changes.
 $env.LAST  # error: not set
 # idiomatic — `for` runs a block
 for n in [1 2 3] { $env.LAST = $n }
-$env.LAST  # "3"
+$env.LAST  # 3
 ```
 
 ### 3. `try/catch` swallowing a single cell-path access

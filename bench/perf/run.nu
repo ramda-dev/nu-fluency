@@ -1,6 +1,6 @@
-# Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, the case-studies.md
-# items marked as re-measured, debug-profile.md) and the row-condition pitfalls in nushell-control-flow,
-# including the closure forms added in nu 0.116 and 0.117, and prints them as one NUON record.
+# Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, including the closure
+# forms added in nu 0.116 and 0.117; the case-studies.md items marked as re-measured; debug-profile.md) and
+# the pitfalls in nushell-control-flow (row conditions, `[] | math sum`), and prints them as one NUON record.
 # Run from the repository root: nu --no-config-file bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
@@ -221,7 +221,7 @@ let control_flow_ms = section control_flow_ms {
   }
 }
 
-# Closure-free options that 0.116/0.117 added or changed, against the closure forms they replace.
+# Builtins worth knowing (cost-model.md#builtins-worth-knowing): closure-free options that 0.116/0.117 added or changed, against the closure forms they replace.
 let closure_free_ms = section closure_free_ms {
   let left = 1..1000 | each {|i| {k: $i} }
   let right = 1..500 | each {|i| {k: ($i * 2)} }
@@ -243,7 +243,7 @@ let closure_free_ms = section closure_free_ms {
   }
 }
 
-# cost-model.md#par-each times par-each from fresh processes; this repeats the 1741-element case in one process to see
+# cost-model.md#par-each reports the 1741-element case; this repeats it three times in one process to see
 # whether the unordered form's slowdown on the XPS run is stable or a one-off.
 let par_each_repeat = section par_each_repeat {
   let s = do $ints 1741

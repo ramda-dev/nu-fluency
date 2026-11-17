@@ -18,12 +18,13 @@ metadata:
 # Nushell Performance
 
 In Nushell the cost of iteration is set by **how many times a closure-taking command is entered**, and by what
-each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about twice (up
-to three times for `record each` / `record where`) what entering a `for`, an `if` or a custom `def` costs,
-whatever the input size; per element, a loop body costs a little over half what the same closure body does,
-but a loop that builds a list copies it on every step. And in a shell library most wall time is not nu code at
-all: it is one external program or one builtin that enumerates the system. So profile first, count entries
-second, edit last.
+each body does. It is not set by mutability. Entering `each`, `where`, `any` or `reduce` costs about twice
+what entering a `for`, an `if` or a custom `def` costs (up to three times for `record each` / `record where`),
+whatever the input size; those ratios include the timing harness, and net of it the gap is wider ([cost
+model](references/cost-model.md)). Per element, a loop body costs a little over half what the same closure
+body does, but a loop that builds a list copies it on every step. And in a shell library most wall time is not
+nu code at all: it is one external program or one builtin that enumerates the system. So profile first, count
+entries second, edit last.
 
 Absolute figures depend on the nu build and the machine, so the measured tables live in
 [the cost model reference](references/cost-model.md), labeled with both. Trust the ratios; re-measure the
@@ -160,15 +161,15 @@ Try 1 to 5 in that order. 6 and 7 apply wherever `probe hot` points at them.
 6. **`par-each` is a budget, not a style.** It costs about 0.83 ms to enter, so it pays only when the serial
    work it spreads is well above that: external or IO work per element, or a heavy pure body over many
    elements (a formatter at 3.7-6.1 us per element crossed over near 170 elements). Over a few cheap pure rows
-   it is the whole cost. Pass `--keep-order`: the unordered form is slower
-   ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). When real callers sit on both sides of
+   it is the whole cost. Time `--keep-order` as well as the unordered form: the known-bug notes at the top of
+   this skill say whether the unordered form is slower on this nu. When real callers sit on both sides of
    the crossover, keep `par-each`: a size gate would bake a load-dependent constant into the code
    ([figures](references/cost-model.md#par-each)).
 7. **A cheaper builtin for the same job**, when `probe hot` puts the time on one closure-free line:
    `describe | str replace --regex '<.*' ''` for `describe | split words | first` (0.36 ms to 0.005 ms), a builtin
    `match` for a closure-taking dispatch helper. `probe entries` reads 0 to 0 for such a change: only the
    self-time view finds it. Check the arms first: the `str replace` form differs from `split words` on
-   `cell-path` and on streams (`byte stream`, `table (stream)`), and the
+   `cell-path` and on a stream whose description has no `<` (`byte stream`, `table (stream)`), and the
    [case studies](references/case-studies.md#a-cheaper-builtin) give the exact drop-in.
 
 Patterns 3 and 4 together, on a check that runs once per rule of a validator (sparse input 5.5 ms to 3.5 ms):
@@ -193,4 +194,4 @@ if ($dead | is-not-empty) and (under $r.at ...$dead) { continue }
 - [Reading `debug profile` directly](references/debug-profile.md): read when `probe hot` and `probe entries` are
   not enough.
 - Don't time with `std bench`: under `nu -l` it reported 962 us for one `each` that a plain timing loop put at
-  55 us, and it prints a terminal progress escape to stdout. Use `probe time`.
+  55 us. Use `probe time`.

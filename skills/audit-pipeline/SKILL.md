@@ -2,7 +2,7 @@
 name: audit-pipeline
 description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
 argument-hint: "<nushell snippet> [--read-only]"
-allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Task(*)", "Read(*)"]
+allowed-tools: ["Bash(nu --version *)", "Bash(which nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
 shell: bash
 ---
 
@@ -21,16 +21,18 @@ flag at its start or end:
 $ARGUMENTS
 ```
 
-Claude Code escapes `!` when it substitutes the arguments: a `!` at the start
-of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a space is
-put between a backtick and an adjacent `!` (`` `a b`! `` arrives as
-`` `a b` ! ``). Undo both when you write the snippet into the heredoc.
+Claude Code (2.1.326) escapes `!` when it substitutes the arguments: a `!` at
+the start of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a
+space is put between a backtick and an adjacent `!` (`` `a b`! `` arrives as
+`` `a b` ! ``). Where the snippet shows either, undo it when you write the
+snippet into the heredoc.
 
-If no arguments were passed (the block above is empty or still shows the
-placeholder), lint the Nushell code you most recently wrote or ran. If the
-block holds only the path of a `.nu` file, lint that file: give its path to
-`nu-lint` in place of `--stdin` and the heredoc (inside WSL, convert it first
-with `wsl.exe --exec wslpath -u '<path>'`).
+If the snippet is empty (no arguments, only `--read-only`, or the block above
+still shows the placeholder), lint the Nushell code you most recently wrote or
+ran. If the block holds only the path of a `.nu` file, lint that file: give its
+path to `nu-lint` in place of `--stdin` and the heredoc (inside WSL, convert it
+first with `wsl.exe --exec wslpath -u '<path>'` and pass the result with an
+extra leading `/`, as for the config path below).
 
 ## Environment
 
@@ -86,11 +88,14 @@ Else, follow the [fallback](#fallback) instructions.
 
 ## Fallback
 
-1. Invoke the [`generate-diagnostics`](../../agents/generate-diagnostics.md) Task agent.
-   Pass it the snippet verbatim.
+1. Invoke the `nu-fluency:generate-diagnostics` subagent
+   ([definition](../../agents/generate-diagnostics.md)). Pass it the snippet
+   verbatim.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
-   alternative), with its uncertainty note and install recommendation.
+   alternative), with its uncertainty note and install recommendation. Its
+   alternatives are suggestions: on this path apply no fix automatically, even
+   without `--read-only`, and wait for confirmation.
 
 ## Constraints
 

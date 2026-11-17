@@ -138,7 +138,7 @@ def main [skill: string]: nothing -> string {
     let running = version | get version
     let notes = applicable $skill | each { bullet $running }
     if ($notes | is-empty) { $"None for nu ($running)." } else { $notes | str join "\n" }
-  } catch { '' }
+  } catch {|e| $"Unavailable: the notes script failed \(($e.msg)\)." }
 }
 
 # Print the reference table, or write it with --write.

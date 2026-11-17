@@ -12,8 +12,8 @@ and the keep rule decide, not what a rewrite will gain now.
   `return`): 0.048 ms, 83%.
 - A helper that a plain `match` made 96% faster had no caller anywhere, so it stayed.
 - Bound by externals and system-enumerating builtins: `ps --long` 108 ms per call, bare `which` (2275 rows)
-  27.7 ms per Tab, `git`, `gh`, `wslpath`, `powershell.exe`. A 6 us closure entry is 0.02% of the cheapest of
-  these.
+  27.7 ms per Tab, `git`, `gh`, `wslpath`, `powershell.exe`. A 6 us closure entry (nu 0.117.1-nightly) is 0.02% of
+  the cheapest of these.
 
 ## Declined gains
 
@@ -47,7 +47,7 @@ skill, under Patterns).
 - A builtin `match` for a closure-taking dispatch helper: 9.4 ms to 2.4 ms across one completer.
 - Re-measured on nu 0.117.1-nightly: `describe | str replace --regex '<.*' ''` for
   `describe | split words | first` is 0.36 ms to 0.005 ms. Over 19 value shapes the two forms differ on one,
-  `cell-path`, which `split words` reads as `cell` and the `str replace` does not. They also differ on streams,
+  `cell-path`, which `split words` reads as `cell` and the `str replace` does not. They also differ on streams
   whose description has no `<` (`byte stream`, `table (stream)`). Where an arm matches or
   prints the name, the exact drop-in is `describe | parse --regex '^(?<type>\w*)' | get 0.type` (0.014 ms
   against 0.005 for the `str replace` and 0.36 for `split words`).

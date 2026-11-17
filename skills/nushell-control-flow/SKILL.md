@@ -85,7 +85,7 @@ In expression position a bare word is a command call. `match $x { null => writte
 
 ### The `?` postfix — first reach
 
-For "this might be missing, default if so". Use `?` **inline on the cell path itself**, not as a wrapper around the access — `$record.deeply.nested.field?` returns null at the first missing link rather than erroring, and `$list.10?` is the list-index equivalent. Compose with `default` to substitute a value: `$record.name? | default "anonymous"`.
+For "this might be missing, default if so". Use `?` **inline on the cell path itself**, not as a wrapper around the access — `$record.deeply?.nested?.field?` returns null at the first missing link rather than erroring (`?` covers only the member it follows), and `$list.10?` is the list-index equivalent. Compose with `default` to substitute a value: `$record.name? | default "anonymous"`.
 
 ### `try/catch` — when something else might throw
 
@@ -117,7 +117,7 @@ The catch closure receives an error record with `msg`, `debug`, `raw`, etc. The 
 
 ## A note on iteration shortcuts
 
-For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. `[] | math sum` raises an error rather than returning 0, so append a zero of the element type when the list can be empty: `append 0 | math sum` for numbers, `append 0ns` for durations, `append 0b` for filesizes (an `int` zero added to a duration or filesize is a type error). The `$it` implicit-element name works inside one-arg closures (`where $it > 2`), useful for short predicates that don't earn a named parameter. Use `enumerate` to pair each element with its index before mapping.
+For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. `[] | math sum` raises an error rather than returning 0, so append a zero of the element type when the list can be empty: `append 0 | math sum` for numbers, `append 0ns` for durations, `append 0b` for filesizes (an `int` zero added to a duration or filesize is a type error). That fix is for `math sum` only: a zero changes `product`, `min`, `max` and `avg`, which also raise on an empty list, so test `is-empty` first for those. `$it` names the element inside a row condition (`where $it > 2`, `any $it > 2`); a closure has no `$it`, so name a parameter (`{|x| …}`) or use `$in`. Use `enumerate` to pair each element with its index before mapping.
 
 ## Pitfalls
 

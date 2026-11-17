@@ -46,7 +46,7 @@ REPL sessions piggybacking off of Nushell's built-in `nu --mcp`).
 
 The commands packaged in this plugin prefer to delegate diagnostics to [`nu-lint`](https://codeberg.org/wvhulle/nu-lint).
 
-`nu-lint` is a deterministic community linter for Nushell with ~150 rules across
+`nu-lint` is a deterministic community linter for Nushell whose rules are grouped into
 `idioms`, `posix`-replacement, `parsing`, `dead-code`, `runtime-errors`, and more.
 
 Most rules have auto-fixes, and the rules themselves respect the nuance of diverging
@@ -59,6 +59,11 @@ from the status quo in the age of LLM.
 # `--locked` - Pins the lockfile's dependency versions.
 cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
+
+On Windows with nu-lint installed inside WSL, `/audit-pipeline` looks for it on the
+distribution's default `PATH` only, which does not include `~/.cargo/bin`. Link it
+there (`sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`), or the skill falls
+back to the agent.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is
 unavailable. The only downside is losing out on deterministic diagnostics.
@@ -95,7 +100,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 
 | Type | Count | Purpose |
 |---|---|---|
-| Skills | 11 | `/nushell-{idioms,records,env-scoping,strings,control-flow,modules,performance}`, `/inspect-shape`, `/env-snapshot`, `/audit-pipeline`, `/command-help` |
+| Skills | 11 | `/nushell-idioms`, `/env-snapshot`, `/audit-pipeline`, `/command-help`; model-only: `inspect-shape`, `nushell-{records,env-scoping,strings,control-flow,modules,performance}` |
 | Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` isn't installed (**experimental**) |
 | Hooks | 2 | Pre-`Bash` nudge toward nu equivalents; post-`nu_exec`/`nu_repl_write` hook that runs `nu-lint` on the executed code |
 | LSP | 1 | `nu --lsp` via `lspServers` in `.claude-plugin/plugin.json` |
@@ -111,8 +116,10 @@ hover info, and auto-fixes any time it edits a Nushell file.
 `bash` → `nu` equivalents, pointers to nu-lint.
 - **`/env-snapshot [keys...]`**
 — `$env | select --optional <keys>` with sensible defaults.
-- **`/audit-pipeline <pipeline>`**
-— runs nu-lint (or falls back to the experimental agent if nu-lint isn't installed).
+- **`/audit-pipeline [<snippet or .nu path>] [--read-only]`**
+— runs nu-lint on the snippet (or on the code Claude last wrote) and applies fixes;
+`--read-only` only reports, with `nu-lint --explain` per rule. Falls back to the
+experimental agent if nu-lint isn't installed.
 - **`/command-help <name>`**
 — inline help lookup via `nu_doc_help`.
 
@@ -162,7 +169,7 @@ pipes it through `nu-lint --stdin --format compact` using the narrow
 there are diagnostics surfaced.
 
 The hook config is intentionally conservative
-— `posix`, `idioms`, `parsing` groups only
+— `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
 — so it fires on bash-translation patterns and skips stylistic noise.
 
 For broader analysis, use `/audit-pipeline`
@@ -179,7 +186,8 @@ Transforms collapse into pipeline stages.
 2. Records are nu's primary data structure.
 3. Env mutations propagate through keyword blocks
 (e.g. `for`/`while`/`loop`, `match`, `if`/`else if`/`else`),
-and certain commands with flags (i.e. `collect --keep-env`, and `do --env`).
+and certain commands with flags (`do --env`, and `def --env` for commands;
+`collect --keep-env` does not, despite its help text).
 The closures used in `each`/`items`/`reduce` and bare `do`/`collect` do not propagate
 environment mutations.
 4. Optional access (`<cell-path>?`) postfix on cell paths returns `null`.

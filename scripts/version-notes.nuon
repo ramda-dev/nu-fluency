@@ -18,7 +18,7 @@
     kind: option
     skills: [nushell-idioms nushell-control-flow]
     option: {name: pipefail enabled: false}
-    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not stop the pipeline or reach `catch`; only the last command decides the outcome (with it on, see also pipefail-skips-bound-pipelines)'
+    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not stop the pipeline or reach `catch`; only the last command decides the outcome (with it on, a failing external in a bound or returned pipeline still does not raise; see the note on that bug)'
     workaround: 'capture the external with `complete` and test its `exit_code`'
     repro: 'try { ^false | lines | length; "no error" } catch { "error" }'
   }
@@ -38,8 +38,8 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block (the one running `hide-env`, or one enclosing it); calling `hide-env` from a `def --env` helper does not help'
-    workaround: 'run `hide-env` before any `--env` call in that block and in every block enclosing it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i`'
+    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block that runs `hide-env` or encloses or calls the code that does; calling `hide-env` from a `def --env` helper does not help'
+    workaround: 'run `hide-env` before any `--env` call in that block and in every block enclosing or calling it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i`'
     repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
     upstream: null
   }
@@ -62,7 +62,7 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: 'even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used in a subexpression, or returned from a command; it raises only when the pipeline is a statement of its own'
+    symptom: 'even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used in a subexpression, or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own'
     workaround: 'capture the external with `complete` and test its `exit_code`'
     repro: 'try { let n = ^false | lines | length; "no error" } catch { "error" }'
     upstream: null
@@ -99,7 +99,7 @@
     reproduced: '0.117.0'
     until: null
     symptom: "`std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; a result for two or more closures also carries ANSI highlighting in its `code` column"
-    workaround: "time with the probe kit's `probe time`, or with `timeit`"
+    workaround: 'time with `probe time` (nushell-performance `scripts/probe.nu`), or with `timeit`'
     repro: 'use std/bench; bench { 1 } --rounds 5 | to nuon'
     upstream: null
   }
