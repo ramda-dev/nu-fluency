@@ -1,15 +1,15 @@
 ---
 name: nushell-env-scoping
 description: >
-  This skill should be used when writing Nushell code that touches `$env` —
-  setting or reading environment variables, persisting env across calls,
-  scoping env to a closure, or debugging why an env mutation isn't visible
-  somewhere. Covers `do --env`, `with-env`, the `for` vs `each`
-  env-propagation distinction, and Nushell's automatic env vars. Trigger
-  phrases: "env mutation", "$env", "scope", "load-env", "with-env",
-  "do --env", "env doesn't propagate", "auto env var".
-version: 0.2.0
+  Explains where Nushell `$env` changes are visible: `for` vs `each`,
+  `do --env`, `def --env`, `with-env`, `load-env`, `export-env`, `hide-env`
+  and the automatic variables. Use when code sets or reads `$env`, or when
+  an env change does not show up where expected.
 user-invocable: false
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping *)
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Env Scoping
@@ -18,14 +18,18 @@ user-invocable: false
 
 Syntax reference: [cheat-sheet → Env and Scope](../nushell-idioms/references/cheat-sheet.md#env-and-scope).
 
+Known bugs for the running nu, if any:
+
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+
 ## The four propagation rules
 
 1. **Top-level code** mutates the script's env. Always propagates downward to children.
-2. **`for n in $list { … }`** — env mutations inside the loop body **propagate to the outer scope**.
+2. **Keyword blocks** (`for`, `while`, `loop`, `if`/`else`, `match` arms, `try`) — env mutations inside **propagate to the outer scope**.
 3. **`each`, `items`, `reduce`, `where`** — closure invocations. Env mutations inside **do not propagate** to the outer scope.
 4. **`do --env { … }`** — propagates closure mutations to caller. **`do { … }`** without `--env` does not.
 
-This is the entire spec. The biggest trap is writing `each { |x| $env.LAST = $x }` and being surprised that `$env.LAST` is unset after.
+These four cover blocks and closures; commands (`def --env`), modules (`export-env`) and `with-env` follow below. The biggest trap is writing `each { |x| $env.LAST = $x }` and being surprised that `$env.LAST` is unset after.
 
 ## The three scope-affecting constructs
 
@@ -43,13 +47,13 @@ Bulk-merges a record into env at the current scope. Subject to the same propagat
 
 ## Automatic env vars (cannot be set manually)
 
-Verified on nu 0.117 (the corpus floor; first observed on 0.111), these three error with `automatic_env_var_set_manually` if you try to `load-env` them:
+These three error with `automatic_env_var_set_manually` if you try to `load-env` them:
 
 - `PWD` — set by `cd`
 - `FILE_PWD` — directory of the running script
 - `CURRENT_FILE` — path of the running script
 
-These almost certainly will not be the entire set across future nu versions. The defensive pattern is to **wrap individual `load-env` calls in `try`**:
+Because a failed `load-env` loads nothing, the defensive pattern is to **wrap individual `load-env` calls in `try`**:
 
 ```nu
 for entry in ($record | transpose key value) {
@@ -58,8 +62,6 @@ for entry in ($record | transpose key value) {
 ```
 
 This lets a single auto-var fail in isolation instead of nuking the entire load. `for` is the right iteration construct here because it propagates the successful env mutations.
-
-There's also a longer list of `LAST_EXIT_CODE`, `OLDPWD`, `NU_VERSION`, `PROCESS_PATH` — these vary by version. The defensive `for`-with-`try` pattern handles them all without needing a static list.
 
 ## Setting env at function boundaries
 
@@ -81,31 +83,8 @@ $env | select --optional KEY1 KEY2 KEY3
 - **`do { … }` without `--env`** silently swallows mutations. The default is "isolate"; the opt-in is "propagate."
 - **A failed `load-env` is atomic** — if the record contains one bad key (e.g. `PWD`), nothing else loads. Per-key try-load is defensive.
 - **`with-env` changes do NOT escape** — that's the design. If you want propagation, use `do --env`.
-- **`hide-env` silently does nothing after an env-propagating call in the same scope** (a Nushell bug, still present in 0.117.0). Once a `do --env { … }` or a `def --env` command has run earlier in the scope, or anywhere up the call stack, a later `hide-env X` leaves `X` set and raises no error: `$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }` is `true`. Don't rely on `hide-env` to scrub an environment. For a child process that needs a clean environment, start it from scratch (`^env -i PATH=$env.PATH HOME=$tmp …` on POSIX); `with-env` only overrides the keys it names and the child still inherits everything else.
+- **Don't rely on `hide-env` to scrub an environment**: it can silently do nothing after a `--env` call ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). For a child process that needs a clean environment, start it from scratch (`^env -i $"PATH=($env.PATH | str join (char esep))" $"HOME=($tmp)" …` on POSIX; a bare `PATH=$env.PATH` reaches `env` as literal text); `with-env` only overrides the keys it names and the child still inherits everything else.
 
-## Appendix: file-backed env persistence
+## References
 
-A niche case: carrying `$env` across separate nu invocations through a file. Prefer a persistent session (e.g. a REPL) when one is available. If a file is the only option, the load/save loop is:
-
-```nu
-# Load
-let __persisted = try {
-    open --raw $path | from json | reject --optional PWD FILE_PWD CURRENT_FILE
-} catch { {} }
-for entry in ($__persisted | transpose key value) {
-    try { load-env { ($entry.key): $entry.value } } catch {}
-}
-
-# User code runs here (inside `do --env { … }` if a closure boundary intervenes)
-
-# Save
-$env
-| reject --optional ENV_CONVERSIONS config FILE_PWD CURRENT_FILE
-| items { |k, v| try { $v | to json --raw | ignore; {($k): $v} } catch { null } }
-| where $it != null
-| into record
-| to json --raw
-| save --force --raw $path
-```
-
-It reuses two patterns covered above: per-key `for`+`try` on load, and `items`+`where`+`into record` on save.
+- [File-backed env persistence](./references/persistence.md): read when `$env` has to survive between separate nu invocations and no persistent session is available.

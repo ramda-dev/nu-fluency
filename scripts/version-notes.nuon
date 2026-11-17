@@ -1,0 +1,120 @@
+# Version notes for the nu-fluency skills: read by scripts/version-notes.nu.
+#
+# kind: option      behavior that depends on an experimental option. `option.enabled`
+#                   is the setting the note warns about; the note is shown for every
+#                   nu that has the option, as a condition, or as fact when that
+#                   setting is the option's default.
+# kind: diagnostic  a Nushell bug the skills work around. `since` is the oldest version that
+#                   reproduces it (0.114.1, `OLDEST_CHECKED` in the script, was the oldest checked), `reproduced` the
+#                   newest, `until` the first fixed version once known (null: open).
+#
+# Prose is written for a skill reader: `symptom` says what goes wrong, `workaround`
+# what to write instead; neither ends with a period, which the script adds. Single-quoted strings have no escapes: write a string
+# that holds an apostrophe in double quotes. After editing, regenerate the reference table with
+# `nu --no-config-file scripts/version-notes.nu render --write`. Some skills also
+# state a workaround in their own prose; when a bug gets an `until`, search the
+# skills for its workaround and update those lines too.
+[
+  {
+    id: pipefail-off
+    kind: option
+    skills: [nushell-idioms nushell-control-flow]
+    option: {name: pipefail enabled: false}
+    symptom: 'an external that fails mid-pipeline (`^false | lines`) does not fail the pipeline or reach `catch`; only the last command decides the outcome (with it on, a failing external in a bound or returned pipeline still does not raise; see the note on that bug)'
+    workaround: 'capture the external with `complete` and test its `exit_code`'
+    repro: 'try { ^false | lines | length; "no error" } catch { "error" }'
+  }
+  {
+    id: runtime-annotations-off
+    kind: option
+    skills: [nushell-idioms]
+    option: {name: enforce-runtime-annotations enabled: false}
+    symptom: 'a `let` or `mut` annotation is still checked where the parser can prove a mismatch (`let x: int = "a"` fails), but every other check is a runtime check and is skipped, so a value of another type binds silently: an empty record for `record<x: int>`, a mixed list for `list<string>`, or a value from `from json`, `open`, an external or the pipeline form `… | let x: T`'
+    workaround: 'check the type yourself with `describe` where it matters, or turn the option back on'
+    repro: 'let y: int = ("[1]" | from json); $y | describe'
+  }
+  {
+    id: hide-env-after-env-call
+    kind: diagnostic
+    skills: [nushell-env-scoping nushell-idioms]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: '`hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a `do` closure or command body that runs `hide-env` or encloses or calls the code that does (an `if`, `try`, `match` or `for` body shares the outer scope and is not affected); calling `hide-env` from a `def --env` helper does not help'
+    workaround: 'run `hide-env` before any `--env` call in that block and in every block enclosing or calling it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i`'
+    repro: '$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }'
+    upstream: null
+  }
+  {
+    id: collect-keep-env-ignored
+    kind: diagnostic
+    skills: [nushell-idioms]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "`collect --keep-env {…}` does not pass the closure's `$env` changes to the caller, although `help collect` says the flag lets the closure affect environment variables"
+    workaround: 'use `do --env { let x = $in; … }` (`do` passes the input as `$in`, not as a closure parameter), or `def --env` for a command'
+    repro: '[1 2 3] | collect --keep-env {|x| $env.LAST = 3 }; $env.LAST? == null'
+    upstream: null
+  }
+  {
+    id: try-escapes-under-ignore
+    kind: diagnostic
+    skills: [nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } | ignore` is the last statement of a command body, a closure (`do`, `each`, `where`, …) or a script, or a command or `do` block whose output comes from such a `try`, directly or through further calls, is piped to `ignore` (`f | ignore`)"
+    workaround: "bind the result (`let _ = f`, `let _ = try { … }`), or end the body with `null`"
+    repro: 'def f [] { try { error make {msg: inner} } catch { "caught" } }; f | ignore'
+    upstream: null
+  }
+  {
+    id: pipefail-skips-bound-pipelines
+    kind: diagnostic
+    skills: [nushell-idioms nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: 'even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used as a value inside a subexpression (an argument, a condition), or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own'
+    workaround: 'capture the external with `complete` and test its `exit_code`'
+    repro: 'try { let n = ^false | lines | length; "no error" } catch { "error" }'
+    upstream: null
+  }
+  {
+    id: later-statement-in
+    kind: diagnostic
+    skills: [nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but a body written as a block (an `if` branch, or a `match` arm in `{…}`) gets an empty `$in`"
+    workaround: 'bind the input first (`let xs = $in`), or write `$in | if ($in | …) { … }`'
+    repro: '[1 2] | do { let y = 3; if ($in | is-empty) { "e" } else { $in | length } }'
+    upstream: null
+  }
+  {
+    id: par-each-unordered-slower
+    kind: diagnostic
+    skills: [nushell-performance nushell-control-flow]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: 'over many cheap items (the repro uses 1741), unordered `par-each` runs markedly slower than `par-each --keep-order`, and can be slower than plain `each`; on small inputs the two match'
+    workaround: 'pass `--keep-order` even when order does not matter'
+    repro: 'let xs = 1..1741 | each { $in }; {unordered: (1..5 | each { timeit { $xs | par-each { $in * 2 } } } | math avg) ordered: (1..5 | each { timeit { $xs | par-each --keep-order { $in * 2 } } } | math avg)}'
+    upstream: null
+  }
+  {
+    id: bench-writes-escapes
+    kind: diagnostic
+    skills: [nushell-performance]
+    since: '0.114.1'
+    reproduced: '0.117.0'
+    until: null
+    symptom: "`std/bench` prints a terminal progress escape (OSC 9;4) to stdout even without `--progress`, so a script's captured output starts with it; a result for two or more closures also carries ANSI highlighting in its `code` column"
+    workaround: 'time with `timeit`, or with `probe time` (nushell-performance `scripts/probe.nu`) when the closure does not end in a `try`'
+    repro: '^$nu.current-exe --no-config-file -c "use std/bench; bench { 1 } { 2 } --rounds 5 | to nuon" | str starts-with (ansi escape)'
+    upstream: null
+  }
+]

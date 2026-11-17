@@ -1,0 +1,100 @@
+version = '3.0.0'
+
+[issue]
+  name   = 'Adopt Iteration Performance Skill'
+  slug   = 'adopt-iteration-performance-skill'
+  date   = 2026-11-15
+  status = 'open'
+
+  [issue.vision]
+    outcome = 'singular'
+
+    [[issue.vision.output]]
+      purpose = 'nushell-performance skill in the house front-matter style, with trigger phrases.'
+      path    = 'skills/nushell-performance/SKILL.md'
+
+    [[issue.vision.output]]
+      purpose = 'The probe kit the skill relies on, taken from the issue body.'
+      path    = 'skills/nushell-performance/scripts/probe.nu'
+
+    [issue.vision.criteria]
+      requirements = [
+        'The skill loads from the plugin and its `use` line resolves to the bundled probe kit.',
+        'Description follows the house "This skill should be used when ... Trigger phrases:" form.',
+      ]
+      constraints  = [
+        'Figures are re-measured on nu 0.117.1-nightly on the reference laptop; library cases keep their 0.115.2-nightly figures and say so.',
+      ]
+
+    [issue.vision.landscape]
+      internal = [
+        {
+          type            = 'brownfield',
+          synopsis        = 'Skill and probe kit written in a nu-lib session, outside the plugin.',
+          reference       = 'SKILL.md attachment and probe.nu source on the GitHub issue.',
+          incompatibility = 'Figures measured on 0.115.2-nightly; the corpus floor is 0.117, where closure entry costs about a seventh as much.'
+        },
+      ]
+
+    [issue.vision.scope]
+      excluded = [
+        {
+          item     = 'Re-running the library case studies on 0.117',
+          deferred = false
+        },
+      ]
+
+  [issue.bindings]
+    [[issue.bindings.xvalue]]
+      type = 'knowledge-preservation'
+      item = 'Ships measured iteration-cost guidance and its probe kit with the plugin instead of one machine.'
+
+  [issue.reference]
+    url    = 'https://github.com/zaynram/nu-fluency/issues/17'
+    branch = 'claude/project-thread-yf3oa7'
+    index  = 17
+
+[tasks]
+  [tasks.1]
+    id        = 'adopt-skill'
+    target    = 'Skill and probe kit committed in the house layout.'
+    completed = 2026-11-15
+    subtasks  = [
+      {
+        synopsis = 'Front matter and trigger phrases in house style',
+        llm      = 'automation',
+        done     = true
+      },
+      {
+        synopsis = 'Bundle probe.nu and point the use line at it',
+        llm      = 'automation',
+        done     = true
+      },
+    ]
+
+  [tasks.2]
+    id        = 'reverify-on-floor'
+    target    = 'Cost model re-checked against nu 0.117.'
+    completed = 2026-11-15
+    subtasks  = [
+      {
+        synopsis = 'Decide whether to re-measure the figures on 0.117',
+        llm      = 'augmentation',
+        done     = true
+      },
+      {
+        synopsis = 'Cover 0.116 and 0.117 forms in the runner',
+        llm      = 'automation',
+        done     = true
+      },
+      {
+        synopsis = 'Update the skill from the laptop run',
+        llm      = 'automation',
+        done     = true
+      },
+      {
+        synopsis = 'Update records and control-flow figures',
+        llm      = 'automation',
+        done     = true
+      },
+    ]
