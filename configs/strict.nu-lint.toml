@@ -17,3 +17,8 @@
     naming         = 'hint'
     formatting     = 'hint'
     upstream       = 'warning'
+
+[rules]
+    # Conflicts with `remove_hat_not_builtin`: with both on, nu-lint exits 1 with a
+    # config conflict before linting anything.
+    add_hat_external_commands = 'off'
