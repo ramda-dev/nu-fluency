@@ -89,7 +89,8 @@ another module's `each` and a per-prompt hook condition.
 
 Not worth touching: anything bound by an external program or a system-enumerating builtin (`ps --long`, bare
 `which`, `git`, `gh`). The lever there is the external call itself (fewer calls, a narrower query, a cache),
-never the nu around it.
+never the nu around it. To time one anyway, end the closure in `| complete`: `probe time` stops with an error
+on a closure whose external exits non-zero.
 
 Relative gain is not the bar. Multiply the microseconds saved by how often the trigger fires, and set that
 against what else runs on the same trigger: a 78% gain worth 46 us on one completer was correctly declined

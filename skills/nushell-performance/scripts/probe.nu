@@ -46,9 +46,16 @@ export def entries [code: closure]: nothing -> record<total: int, by: record, cl
 
 # Median milliseconds of one run of `code`. Each run's result is bound (`let _ =`), not piped to `ignore`, so a
 # closure that ends in `try` keeps its catch (try-escapes-under-ignore); a streamed result is therefore collected,
-# which adds 0.1 to 0.2 us per element (nu 0.117.0). `compare` and `calibrate` time the same way.
+# which adds 0.1 to 0.2 us per element (nu 0.117.0). `compare` and `calibrate` time the same way. A bound result
+# also raises when the closure ends in an external that exits non-zero, so a warm-up run that fails raises one
+# clear error before timing; end such a closure in `| complete` to time it anyway.
 export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -> float {
-  let _ = do $code
+  try { let _ = do $code } catch {|e|
+    error make --unspanned {
+      msg: 'the timed closure failed'
+      help: $"($e.msg)\nif it ends in an external that can exit non-zero, end it in `| complete`"
+    }
+  }
   1..$passes | each {
     let t = date now
     for _ in 1..$rounds { let _ = do $code }

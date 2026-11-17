@@ -58,7 +58,7 @@ no quoting or escaping, whatever quotes or braces it holds.
    encoded, or nu-lint lints a single string literal and reports it clean.
 
    ```nu
-   use '${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'; $in | lint check strict | to json
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; $in | lint check strict | to json
    ```
 
    For a `.nu` file, pass its absolute path as `input` instead, as plain text,
@@ -66,7 +66,7 @@ no quoting or escaping, whatever quotes or braces it holds.
    directory, not the project's):
 
    ```nu
-   use '${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'; open --raw ($in | str trim) | lint check strict | to json
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; open --raw ($in | str trim) | lint check strict | to json
    ```
 
 2. Read the JSON result:
@@ -78,8 +78,8 @@ no quoting or escaping, whatever quotes or braces it holds.
    - Otherwise nu-lint ran and failed: report its `stderr` and `output` and
      stop; do not fall back.
 
-   If the `nu_exec` call itself fails, check the cause first: a file that was
-   not found means the path was wrong (make it absolute and retry). Otherwise
+   If the `nu_exec` call itself fails, check the cause first: an `open` error
+   for a file that was not found means the `.nu` path was wrong (make it absolute and retry). Otherwise
    (the tool is unavailable, or `nu` cannot load the script) say so and follow
    the [fallback](#fallback).
 
@@ -112,5 +112,5 @@ sensible fixes automatically and await confirmation for further edits.
 Else, present the diagnostics to the user without making any changes, and
 for each diagnostic, surface nu-lint's explanation of its rule: call `nu_exec`
 with `structured: false` and the pipeline
-`use '${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'; lint explain <rule>` (on the
+`use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; lint explain <rule>` (on the
 fallback path, name the related rule instead).

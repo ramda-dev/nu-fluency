@@ -48,7 +48,7 @@ def cargo-candidates []: nothing -> list<string> {
 def native []: nothing -> oneof<string, nothing> {
   let found = which nu-lint | where type == external | first
   if $found != null { return $found.path }
-  cargo-candidates | where ($it | path type) == file | first
+  cargo-candidates | where ($it | path expand | path type) == file | first
 }
 
 # Whether nu-lint may be inside WSL: a Windows host with `wsl.exe`.
@@ -99,7 +99,12 @@ export def check [
   let result = if $linter.via == wsl {
     $code | wsl-run check $config_path
   } else {
-    $code | ^$linter.path --stdin --format compact --config $config_path | complete
+    # A found nu-lint that cannot be started (not executable, wrong architecture) counts as not found.
+    try {
+      $code | ^$linter.path --stdin --format compact --config $config_path | complete
+    } catch {|e|
+      return ($not_found | update stderr $"($linter.path) could not be started: ($e.msg)")
+    }
   }
   # Inside WSL, nu-lint ran only if the script said READY; otherwise nu-lint is missing
   # there or `wsl.exe` could not run the script, and `stderr` says which.
