@@ -64,8 +64,8 @@ from the status quo in the age of LLM.
 The bundled configs use the rule group names nu-lint introduced in 1.7.0 and 1.8.0, so
 **nu-lint 1.8.0 or newer is required**. An older nu-lint (1.3 to 1.6) silently ignores
 the groups and lints with its defaults, and nu-lint 1.7.x refuses the configs. Check
-with `nu-lint --version`; `cargo install-update` can lag behind the latest release, so
-reinstall with the command below when it reports an older version.
+with `nu-lint --version`, and when it reports an older version, reinstall with the command
+below: an update tool such as `cargo install-update` may leave a git install behind.
 
 ```sh
 # `--git <url>` - Build from latest source code
@@ -195,8 +195,10 @@ Cases live in `hooks/tests/lint-pipeline.nu`, with a stub nu-lint
 (`nu --no-config-file hooks/tests/lint-pipeline.nu`).
 
 The hook config is intentionally conservative
-— `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
-— so it fires on bash-translation patterns and skips stylistic noise.
+(`replace-external-tools`, `translate-bash-syntax`, `adopt-nu-syntax`, `parse-structured-data`
+and `migrate-deprecated-syntax` as warnings, `remove-dead-code` as hints, a few stylistic rules
+turned off and a few bash-habit rules turned on), so it fires on bash-translation patterns and
+skips stylistic noise.
 
 For broader analysis, use `/audit-pipeline`
 (which uses the `strict.nu-lint.toml` config).

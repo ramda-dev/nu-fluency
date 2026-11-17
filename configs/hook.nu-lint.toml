@@ -30,3 +30,14 @@
     # on, nu-lint exits 1 with a config conflict before linting anything, and the
     # hook would stay silent on every call.
     add_hat_external_commands = 'off'
+
+    # Stylistic rules that sit in `adopt-nu-syntax` and would block ad-hoc code
+    # (`[1] | append 2 | append 3`, `def f [xs: list<int>]`).
+    chained_append            = 'off'
+    list_param_to_variadic    = 'off'
+    merge_multiline_print     = 'off'
+    dispatch_with_subcommands = 'off'
+
+    # Bash habits that sit in groups the hook turns off.
+    fragile_last_exit_code      = 'warning'  # checking $env.LAST_EXIT_CODE like bash's $?
+    normalize_pasted_whitespace = 'warning'  # tabs or non-breaking spaces from pasted shell code
