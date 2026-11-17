@@ -69,7 +69,7 @@ no quoting or escaping, whatever quotes or braces it holds.
    `<stdin>`, so name the file when you render them:
 
    ```nu
-   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; let file = $in | str trim; cd ($file | path dirname); open --raw $file | lint check strict | to json
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; let file = $in | str trim | path expand; cd ($file | path dirname); open --raw $file | lint check strict | to json
    ```
 
 2. Read the JSON result:

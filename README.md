@@ -219,6 +219,7 @@ Don't `print` what you're returning.
 ## Tests
 
 - `nu --no-config-file hooks/tests/nu-over-bash.nu` runs the Bash-nudge hook cases.
+- `nu --no-config-file hooks/tests/lint-pipeline.nu` runs the lint hook and runner cases with a stub nu-lint.
 - `claude plugin eval . --tag triggers --ablation none --runs 1` runs the skill
 trigger round-trip cases in `tests/triggers/`: each skill has a prompt that must
 invoke it and a nearby prompt that must not. `tests/README.md` has the details.
