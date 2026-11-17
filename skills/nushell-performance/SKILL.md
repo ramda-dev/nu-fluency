@@ -103,10 +103,11 @@ large its measured gain (a helper that a plain `match` made 96% faster had no ca
    or a heavy builtin shows up here at once, which usually ends the investigation. When the function owns
    only a few percent of its trigger, stop: halving 5% of a Tab is 2.5% of the Tab.
 3. `probe entries {|| <call> }`: exact closure-command entries of one run, by command. Entries times about
-   3 us (6 us for `record each` / `record where`) is the most that rewriting them as loops can remove; entries
-   made per element usually matter more than their count suggests, because each one also pays its body. The
-   count cannot show one entry getting cheaper: `par-each` to `each` reads 1 and 1 while the run drops by most
-   of a millisecond.
+   3 us (6 us for `record each` / `record where`, 8 for `generate`) is the most that rewriting them as loops can
+   remove; a `tee`, `interleave` or `par-each` entry is a budget item, so read those separately in `by`.
+   Entries made per element usually matter more than their count suggests, because each one also pays its
+   body. The count cannot show one entry getting cheaper: `par-each` to `each` reads 1 and 1 while the run
+   drops by most of a millisecond.
 4. Build the workload from literal data shaped like the real input, never from live user data. When the real
    input is empty or tiny, that is the workload: measure the guard path and stop, rather than tuning for a
    size nobody has. When input size varies, measure several sizes: a `for` with `++=` rewrite of a completion

@@ -23,10 +23,11 @@ $ARGUMENTS
 
 Claude Code (2.1.326) escapes `!` when it substitutes the arguments: a `!` at
 the start of a word or line arrives as `\!` (so `!=` arrives as `\!=`), and a
-space is put between a backtick and an adjacent `!`, which then gets the
-backslash too (`` `a b`! `` arrives as `` `a b` \! ``, `` !`x` `` as
-`` \! `x` ``). Undo both wherever you use the snippet (the heredoc or the
-fallback agent's prompt). A space that was already before the `!` cannot be
+space is put between a backtick and an adjacent `!`, after which a `!` that
+starts a word gets the backslash too (`` `a b`! `` arrives as `` `a b` \! ``,
+and a word-initial `!` before a backtick as `\!`, a space and the backtick).
+Undo both wherever you use the snippet (the heredoc or the fallback agent's
+prompt). A space that was already before the `!` cannot be
 told apart from an inserted one, so keep it only where the code needs it.
 
 If the snippet is empty (no arguments, only `--read-only`, or the block above

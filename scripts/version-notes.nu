@@ -12,9 +12,7 @@
 # It runs in a fresh process, which sees each experimental option at its default
 # whatever the user's own shell sets, so an option note is printed as a condition
 # for every nu that has the option, and stated as fact when the option's default
-# (its `enabled` value in this fresh process) is the setting it warns about. An option
-# whose `status` starts with `deprecated` can no longer be changed, so its note is
-# stated as fact when its fixed setting is the one it warns about and dropped otherwise.
+# (its `enabled` value in this fresh process) is the setting it warns about.
 
 const DATA = path self version-notes.nuon
 const REFERENCE = path self ../skills/nushell-idioms/references/nushell-diagnostics.md
@@ -51,16 +49,13 @@ def older [a: string b: string]: nothing -> bool {
 # default is the setting the note warns about.
 def applicable [skill: string]: nothing -> table {
   let running = version | get version
-  let options = debug experimental-options | select identifier enabled status
+  let options = debug experimental-options | select identifier enabled
   notes | where $skill in $it.skills | each {|note|
     match $note.kind {
       option => {
         let option = $options | where identifier == $note.option.name | get 0?
         if $option != null {
-          let default = $option.enabled == $note.option.enabled
-          if $default or not ($option.status | str starts-with deprecated) {
-            $note | insert $.stale false | insert $.default $default
-          }
+          $note | insert $.stale false | insert $.default ($option.enabled == $note.option.enabled)
         }
       }
       diagnostic => {
@@ -94,12 +89,17 @@ def bullet [running: string]: record -> string {
 # The data file's rows, or an error naming the first row the per-skill form could not use.
 def notes []: nothing -> list<record> {
   let notes = open $DATA
+  if ($notes | describe) !~ '^(list|table)' { error make --unspanned {msg: 'version-notes.nuon: not a list'} }
   for n in $notes {
     let id = $n.id? | default '(no id)'
     let keys = $KEYS | get --optional ($n.kind? | default '')
     if $keys == null { error make --unspanned {msg: $"($id): kind must be option or diagnostic"} }
     let missing = $keys | where $it not-in ($n | columns)
     if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
+    if ($n.skills | describe) !~ '^(list|table)' { error make --unspanned {msg: $"($id): skills must be a list"} }
+    if $n.kind == option and ($n.option.name? == null or ($n.option.enabled? | describe) != bool) {
+      error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
+    }
     let unknown = $n.skills | where not ($SKILLS | path join $it SKILL.md | path exists)
     if ($unknown | is-not-empty) { error make --unspanned {msg: $"($id): no skill ($unknown | str join ', ')"} }
     if $n.kind == diagnostic {

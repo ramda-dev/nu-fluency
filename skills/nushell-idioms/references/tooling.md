@@ -4,7 +4,7 @@ The bundled LSP uses the native `nu --lsp` server,
 which provides realtime diagnostics when working on Nushell files.
 
 When available, the `nu-lint` command provides much richer diagnostics,
-and is what the plugin's post-`nu_exec` hook calls when checking a pipeline.
+and is what the plugin's post-`nu_exec`/`nu_repl_write` hook calls when checking that code.
 
 It's a deterministic, community-maintained linter. Its most notable rule group,
 `posix`, aims to "replace common bash/posix patterns", which covers a large

@@ -599,7 +599,7 @@ use mymod double
 double 21                              # 42
 ```
 
-**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules` → Dispatch](../../nushell-modules/SKILL.md#dispatch-main-subcommands-and-constants) has a worked example of every case.
+**Dispatch rule**: the bare namespace name invokes `main`, and `namespace subcommand args` reaches the other exports whether or not the module exports `main`. Selective (`use foo.nu hello`) and wildcard (`use foo.nu *`) imports bring the names into scope without the prefix. [`nushell-modules` → Dispatch](../../nushell-modules/SKILL.md#dispatch-main-subcommands-and-constants) has a worked example.
 
 ## Useful Flags and Forms
 

@@ -1,6 +1,7 @@
 # Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, including the closure
-# forms added in nu 0.116 and 0.117; the case-studies.md items marked as re-measured; debug-profile.md) and
-# the pitfalls in nushell-control-flow (row conditions, `[] | math sum`), and prints them as one NUON record.
+# forms added in nu 0.116 and 0.117 but not the two-glob par-each case; the case-studies.md items re-measured
+# on 0.117.1 except the Timing section; debug-profile.md) and the pitfalls in nushell-control-flow (row
+# conditions, `[] | math sum`), and prints them as one NUON record.
 # Run from the repository root: nu --no-config-file bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
