@@ -174,6 +174,9 @@ lints it through `scripts/lint.nu` with the narrow `configs/hook.nu-lint.toml`
 (inside WSL too), and surfaces findings as a block reason iff there are
 diagnostics surfaced.
 
+Cases live in `hooks/tests/lint-pipeline.nu`, with a stub nu-lint
+(`nu --no-config-file hooks/tests/lint-pipeline.nu`).
+
 The hook config is intentionally conservative
 — `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
 — so it fires on bash-translation patterns and skips stylistic noise.

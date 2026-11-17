@@ -70,15 +70,18 @@ no quoting or escaping, whatever quotes or braces it holds.
    ```
 
 2. Read the JSON result:
-   - `linter` is null: nu-lint was not found. Follow the [fallback](#fallback).
+   - `linter` is null: nu-lint was not found or could not be started (`stderr`
+     says why). Follow the [fallback](#fallback).
    - `diagnostics` is not empty: render the findings directly, one per line,
      with their line/column references.
    - `diagnostics` is empty and `exit_code` is 0: the snippet is clean.
    - Otherwise nu-lint ran and failed: report its `stderr` and `output` and
      stop; do not fall back.
 
-   If the `nu_exec` call itself fails (the tool is unavailable, or `nu` cannot
-   load the script), say so and follow the [fallback](#fallback).
+   If the `nu_exec` call itself fails, check the cause first: a file that was
+   not found means the path was wrong (make it absolute and retry). Otherwise
+   (the tool is unavailable, or `nu` cannot load the script) say so and follow
+   the [fallback](#fallback).
 
 ## Fallback
 
@@ -90,7 +93,9 @@ no quoting or escaping, whatever quotes or braces it holds.
    agent adds it to its recommendation: when nu-lint was not found, "install
    nu-lint (`cargo install --git https://codeberg.org/wvhulle/nu-lint --locked`);
    it is found on `PATH`, in `$CARGO_HOME/bin`, `~/.cargo/bin` or
-   `~/.local/share/cargo/bin`, or on Windows also inside WSL"; when `nu_exec` failed, what failed.
+   `~/.local/share/cargo/bin`, or on Windows also inside WSL", followed by the
+   result's `stderr` when it names another cause; when `nu_exec` failed, what
+   failed.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its

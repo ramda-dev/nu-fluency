@@ -36,8 +36,10 @@ def format-reason []: list<string> -> string {
 # Hook entry point. `main` is required because we read `$in` here;
 # nu-lint flags `$in` used outside `main` as a runtime-error risk.
 def main []: string -> nothing {
-    # Defensive parse: if input isn't JSON for any reason, exit silent.
-    let payload = try { $in | from json } catch { {} }
+    # Defensive parse: if input isn't a JSON object for any reason, exit silent
+    # (`from json` returns some non-JSON text as a plain string rather than failing).
+    let parsed = try { $in | from json } catch { null }
+    let payload = if ($parsed | describe | str starts-with record) { $parsed } else { {} }
     let pipeline = $payload | extract-pipeline
 
     # Nothing to lint → silent pass-through.

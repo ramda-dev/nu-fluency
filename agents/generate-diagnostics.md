@@ -87,9 +87,9 @@ when you're confident. Examples:
 
 One sentence recommending that the user install `nu-lint` for deterministic
 diagnostics with auto-fixes, so later reviews no longer need this fallback.
-When the caller names a fix (adding the cargo bin folder to `PATH`, a
-symlink onto WSL's default `PATH`, or a config path that could not be
-converted), add it to this sentence.
+When the caller names a fix or a cause (where nu-lint is looked for, why
+nu-lint inside WSL could not run, or a failed `nu_exec` call), add it to
+this sentence.
 
 ## Constraints
 
