@@ -53,12 +53,19 @@ REPL sessions piggybacking off of Nushell's built-in `nu --mcp`).
 The commands packaged in this plugin prefer to delegate diagnostics to [`nu-lint`](https://codeberg.org/wvhulle/nu-lint).
 
 `nu-lint` is a deterministic community linter for Nushell whose rules are grouped into
-`idioms`, `posix`-replacement, `parsing`, `dead-code`, `runtime-errors`, and more.
+`replace-external-tools`, `translate-bash-syntax`, `adopt-nu-syntax`, `parse-structured-data`,
+`catch-runtime-failures`, and more.
 
 Most rules have auto-fixes, and the rules themselves respect the nuance of diverging
 from the status quo in the age of LLM.
 
 ### Installation
+
+The bundled configs use the rule group names nu-lint introduced in 1.7.0 and 1.8.0, so
+**nu-lint 1.8.0 or newer is required**. An older nu-lint (1.3 to 1.6) silently ignores
+the groups and lints with its defaults, and nu-lint 1.7.x refuses the configs. Check
+with `nu-lint --version`, and when it reports an older version, reinstall with the command
+below: an update tool such as `cargo install-update` may leave a git install behind.
 
 ```sh
 # `--git <url>` - Build from latest source code
@@ -130,7 +137,7 @@ hover info, and auto-fixes any time it edits a Nushell file.
 — `$env | select --optional <keys>` with sensible defaults.
 - **`/audit-pipeline [<snippet or .nu path>] [--read-only]`**
 — runs nu-lint on the snippet (or on the code Claude last wrote) and applies fixes;
-`--read-only` only reports, with `nu-lint --explain` per rule. Falls back to the
+`--read-only` only reports, with `nu-lint rules explain` per rule. Falls back to the
 experimental agent, which only suggests fixes, when nu-lint is not installed or cannot be found.
 - **`/command-help <name>`**
 — inline help lookup via `nu_doc_help`.
@@ -188,8 +195,10 @@ Cases live in `hooks/tests/lint-pipeline.nu`, with a stub nu-lint
 (`nu --no-config-file hooks/tests/lint-pipeline.nu`).
 
 The hook config is intentionally conservative
-— `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
-— so it fires on bash-translation patterns and skips stylistic noise.
+(`replace-external-tools`, `translate-bash-syntax`, `adopt-nu-syntax`, `parse-structured-data`
+and `migrate-deprecated-syntax` as warnings, `remove-dead-code` as hints, a few stylistic rules
+turned off and a few bash-habit rules turned on), so it fires on bash-translation patterns and
+skips stylistic noise.
 
 For broader analysis, use `/audit-pipeline`
 (which uses the `strict.nu-lint.toml` config).

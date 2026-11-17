@@ -26,7 +26,7 @@ const CONFIGS = path self ../configs
 # nu-lint the script writes READY to stderr, which tells a nu-lint failure apart from
 # a `wsl.exe` that never ran it (no distribution, WSL disabled). One line, so the
 # argument carries no newline through the Windows command line.
-const WSL_SCRIPT = r#'p=$(command -v nu-lint 2>/dev/null); for c in "$HOME/.cargo/bin/nu-lint" "$HOME/.local/share/cargo/bin/nu-lint"; do [ -n "$p" ] && break; [ -x "$c" ] && p=$c; done; [ -n "$p" ] || { echo 'nu-lint not found in WSL' >&2; exit 127; }; case "$1" in locate) printf '%s\n' "$p" ;; check) config=$(wslpath -a -u "$2") || { echo "wslpath could not convert $2" >&2; exit 2; }; echo READY >&2; exec "$p" --stdin --format compact --config "$config" ;; explain) echo READY >&2; exec "$p" --explain "$2" ;; *) echo "unknown mode: $1" >&2; exit 2 ;; esac'#
+const WSL_SCRIPT = r#'p=$(command -v nu-lint 2>/dev/null); for c in "$HOME/.cargo/bin/nu-lint" "$HOME/.local/share/cargo/bin/nu-lint"; do [ -n "$p" ] && break; [ -x "$c" ] && p=$c; done; [ -n "$p" ] || { echo 'nu-lint not found in WSL' >&2; exit 127; }; case "$1" in locate) printf '%s\n' "$p" ;; check) config=$(wslpath -a -u "$2") || { echo "wslpath could not convert $2" >&2; exit 2; }; echo READY >&2; exec "$p" --stdin --format compact --config "$config" ;; explain) echo READY >&2; exec "$p" rules explain "$2" ;; *) echo "unknown mode: $1" >&2; exit 2 ;; esac'#
 const READY = 'READY'
 
 # A diagnostic line of `--format compact`: `<file>:<line>:<col>: <level>(<rule>): …`.
@@ -127,7 +127,7 @@ export def explain [
 ]: nothing -> string {
   let path = native
   let result = if $path != null {
-    ^$path --explain $rule | complete
+    ^$path rules explain $rule | complete
   } else if (wsl-host) {
     null | wsl-run explain $rule
   } else {
@@ -137,7 +137,7 @@ export def explain [
     error make --unspanned {msg: 'nu-lint not found' help: $result.stderr}
   }
   if $result.exit_code != 0 {
-    error make --unspanned {msg: $"nu-lint --explain ($rule) failed" help: ($result.stderr | str trim)}
+    error make --unspanned {msg: $"nu-lint rules explain ($rule) failed" help: ($result.stderr | str trim)}
   }
   $result.stdout | str trim
 }

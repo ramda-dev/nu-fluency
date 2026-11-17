@@ -1,29 +1,43 @@
 # nu-fluency hook config: minimum-noise rule set for per-call linting.
 # Focused on the "this code is bash thinking in nu syntax" anti-patterns;
 # everything stylistic is off so the hook only fires on substantive issues.
+# Group names are nu-lint's from 1.8.0 on (see the README for the minimum version).
 
 [groups]
-    posix     = 'warning'  # awk/sed/grep/etc. → nu equivalents — the bullseye
-    idioms    = 'warning'  # nu-native simplifications
-    parsing   = 'warning'  # better text-parsing patterns
-    dead-code = 'hint'     # useful but lower priority
+    replace-external-tools    = 'warning'  # grep/sed/jq/etc. → nu built-ins: the bullseye
+    translate-bash-syntax     = 'warning'  # bash operators and variables pasted into nu
+    adopt-nu-syntax           = 'warning'  # nu-native simplifications
+    parse-structured-data     = 'warning'  # better text-parsing patterns
+    migrate-deprecated-syntax = 'warning'  # syntax the installed nu already deprecates
+    remove-dead-code          = 'hint'     # useful but lower priority
 
-    # Stylistic rules — off in hook mode because they fire on every other
-    # line of valid code. Enable in your editor's LSP config or via /audit-pipeline.
-    naming         = 'off'
-    formatting     = 'off'
-    documentation  = 'off'
-    type-safety    = 'off'
-    filtering      = 'off'
-    iteration      = 'off'
-    performance    = 'off'
-    effects        = 'off'
-    runtime-errors = 'off'  # noisy on ad-hoc pipelines that intentionally don't error-handle
-    external       = 'off'
-    upstream       = 'off'
+    # Stylistic and structural groups: off in hook mode because they fire on every
+    # other line of valid code. Enable them in your editor's LSP config or via
+    # /audit-pipeline.
+    follow-naming-conventions  = 'off'
+    format-whitespace          = 'off'
+    reduce-complexity          = 'off'
+    document-interfaces        = 'off'
+    annotate-types             = 'off'
+    pipe-instead-of-loop       = 'off'
+    stream-in-process          = 'off'
+    isolate-side-effects       = 'off'
+    catch-runtime-failures     = 'off'  # noisy on ad-hoc pipelines that intentionally don't error-handle
+    forward-parser-diagnostics = 'off'
 
 [rules]
     # Conflicts with `remove_hat_not_builtin`, as in strict.nu-lint.toml: with both
     # on, nu-lint exits 1 with a config conflict before linting anything, and the
     # hook would stay silent on every call.
     add_hat_external_commands = 'off'
+
+    # Stylistic rules that sit in `adopt-nu-syntax` and would block ad-hoc code
+    # (`[1] | append 2 | append 3`, `def f [xs: list<int>]`).
+    chained_append            = 'off'
+    list_param_to_variadic    = 'off'
+    merge_multiline_print     = 'off'
+    dispatch_with_subcommands = 'off'
+
+    # Bash habits that sit in groups the hook turns off.
+    fragile_last_exit_code      = 'warning'  # checking $env.LAST_EXIT_CODE like bash's $?
+    normalize_pasted_whitespace = 'warning'  # tabs or non-breaking spaces from pasted shell code
