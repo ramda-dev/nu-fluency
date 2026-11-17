@@ -27,3 +27,7 @@
     # on, nu-lint exits 1 with a config conflict before linting anything, and the
     # hook would stay silent on every call.
     add_hat_external_commands = 'off'
+    # Stylistic: flags a quoted path such as `use '<plugin root>/scripts/lint.nu'`,
+    # which `/audit-pipeline` sends through `nu_exec`, so the hook would block the
+    # skill's own call. The quotes are needed for a path with spaces or backslashes.
+    string_may_be_bare = 'off'
