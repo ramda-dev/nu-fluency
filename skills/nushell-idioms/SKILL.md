@@ -158,9 +158,9 @@ def count-lines []: string -> int { lines | length }
 
 ```nu
 # anti-pattern — reads as string replacement
-$nu.data-dir | path basename --replace nupm/modules
+$nu.data-dir | path basename --replace my-tool/cache
 # idiomatic — says "sibling of data-dir"
-$nu.data-dir | path dirname | path join nupm modules
+$nu.data-dir | path dirname | path join my-tool cache
 ```
 
 ## Anti-Patterns: False Positives
