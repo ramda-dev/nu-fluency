@@ -50,8 +50,8 @@
     since: '0.114.1'
     reproduced: '0.117.0'
     until: null
-    symptom: "a `try` (with or without `catch`) that ends the body of a command or a `do` block does not catch when that output is piped to `ignore`: the error escapes"
-    workaround: "bind the result (`let _ = f`), or end the command's body with `null`"
+    symptom: "a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } | ignore` is the last statement of a command body, a `do` block or a script, or a command or `do` block whose body ends in the `try` is piped to `ignore` (`f | ignore`)"
+    workaround: "bind the result (`let _ = f`, `let _ = try { … }`), or end the body with `null`"
     repro: 'def f [] { try { error make {msg: inner} } catch { "caught" } }; f | ignore'
     upstream: null
   }

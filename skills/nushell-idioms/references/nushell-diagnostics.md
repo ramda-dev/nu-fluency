@@ -10,7 +10,7 @@ when they load, the rows that apply to the running nu.
 | Id | Symptom | Repro | Workaround | Since | Reproduced | Fixed in | Upstream |
 |---|---|---|---|---|---|---|---|
 | hide-env-after-env-call | `hide-env` leaves a variable set when nu code assigned it in an outer block and a `do --env` or `def --env` call has already run in a nested block that runs `hide-env` or encloses or calls the code that does; calling `hide-env` from a `def --env` helper does not help | `$env.FOO = 1; do { do --env { }; hide-env FOO; $env has FOO }` | run `hide-env` before any `--env` call in that block and in every block enclosing or calling it, or run externals that must not see the variable under `with-env {VAR: null}` or `env -i` | 0.114.1 | 0.117.0 | open |  |
-| try-escapes-under-ignore | a `try` (with or without `catch`) that ends the body of a command or a `do` block does not catch when that output is piped to `ignore`: the error escapes | `def f [] { try { error make {msg: inner} } catch { "caught" } }; f \| ignore` | bind the result (`let _ = f`), or end the command's body with `null` | 0.114.1 | 0.117.0 | open |  |
+| try-escapes-under-ignore | a `try` (with or without `catch`) whose output reaches `ignore` does not catch, and the error escapes: either `try { … } \| ignore` is the last statement of a command body, a `do` block or a script, or a command or `do` block whose body ends in the `try` is piped to `ignore` (`f \| ignore`) | `def f [] { try { error make {msg: inner} } catch { "caught" } }; f \| ignore` | bind the result (`let _ = f`, `let _ = try { … }`), or end the body with `null` | 0.114.1 | 0.117.0 | open |  |
 | pipefail-skips-bound-pipelines | even with `pipefail` on, an external that fails mid-pipeline does not raise when the pipeline is bound with `let`, used in a subexpression, or is the value that a command, closure or `do` block returns; it raises only when the pipeline is a statement of its own | `try { let n = ^false \| lines \| length; "no error" } catch { "error" }` | capture the external with `complete` and test its `exit_code` | 0.114.1 | 0.117.0 | open |  |
 | later-statement-in | in an `if` or `match` that is not the first statement of a block, the condition sees the block's input but a body written as a block (an `if` branch, or a `match` arm in `{…}`) gets an empty `$in` | `[1 2] \| do { let y = 3; if ($in \| is-empty) { "e" } else { $in \| length } }` | bind the input first (`let xs = $in`), or write `$in \| if ($in \| …) { … }` | 0.114.1 | 0.117.0 | open |  |
 | par-each-unordered-slower | unordered `par-each` runs slower than `par-each --keep-order` on the same input, and can be slower than plain `each` | `let xs = 1..1741 \| each { $in }; {unordered: (1..5 \| each { timeit { $xs \| par-each { $in * 2 } } } \| math avg) ordered: (1..5 \| each { timeit { $xs \| par-each --keep-order { $in * 2 } } } \| math avg)}` | pass `--keep-order` even when order does not matter | 0.114.1 | 0.117.0 | open |  |
@@ -18,10 +18,10 @@ when they load, the rows that apply to the running nu.
 
 ## Experimental options
 
-Behavior the skills describe with the option at its default. These notes apply
-only when the shell that runs the code has the option set the other way
-(`debug experimental-options` lists the settings); the skills print them as a
-condition, since they cannot see the settings of the shell you use.
+Behavior that depends on an experimental option. The skills print a note as a
+condition when the shell that runs the code could have the option set either way
+(`debug experimental-options` lists the settings), and as fact when the option''s
+default in the running nu is the setting the note warns about.
 
 | Setting | Symptom | Repro | Workaround |
 |---|---|---|---|

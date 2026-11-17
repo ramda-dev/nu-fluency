@@ -60,7 +60,7 @@ skill, under Patterns).
 
 ## Timing
 
-Measured on nu 0.117.1-nightly.
+Measured on nu 0.115.2-nightly and not re-run.
 
 - An old-versus-old control read +4%. Drift between two separate `probe time` runs is larger than most gains;
   other benchmarks on the machine swing a result by 10 points or more.

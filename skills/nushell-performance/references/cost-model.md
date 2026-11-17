@@ -6,14 +6,14 @@ on another machine. Library case studies measured on an older nu are in [case st
 
 ## Entry cost
 
-Microseconds to enter a form once, on a quiet machine with no config (about 1.3x under a login config):
+Microseconds to enter a form once, on a quiet machine with no config (about 1.3x under a login config, measured on nu 0.115.2-nightly):
 
 | about 3 us | about 5-11 us | about 70 us | about 830 us |
 |---|---|---|---|
 | `for`, `while`, `if`, `match`, `try`, `do {}`, a custom `def` call, `with-env` (5), `collect {closure}`, most closure-free builtins (`str replace`, `get`, `in`, `split row`: 3-4), `zip <list>`, and `update` / `insert` / `default` / `group-by` / `sort-by` given a **value or a column name** | `each`, `where` (row condition or closure), `any`, `all`, `reduce`, `items`, `take while` / `until`, `skip while` / `until`, `each while`, `chunk-by`, `update cells`, `zip {closure}`, `record walk`, `record apply` (5-6); `record each`, `record where`, `str replace {closure}` (9); `generate` (11); and `update` / `insert` / `default` / `group-by` / `sort-by` given a **closure** (5-7) | `tee`, `interleave`: both run their closures in parallel | `par-each` |
 
 The timing loop itself accounts for about 2 us of every figure, so the gap between the first two columns is
-larger than it looks: about 1 us of work against 3 to 7.
+larger than it looks: about 1 us of work against 3 to 9.
 
 ## Per-element cost
 
@@ -75,7 +75,7 @@ against 27 ms for the `items` form.
 ## `par-each`
 
 - It costs about 0.83 ms to enter (unordered form, `probe calibrate`).
-- External or IO work per element (two globs): `each` measured 62% slower (form not recorded).
+- External or IO work per element (two globs): `each` measured 62% slower (nu 0.115.2-nightly, form not recorded; not re-run).
 - A formatter at 3.7-6.1 us per element, against `par-each --keep-order`: `each` wins by 97% at 4 elements and
   by 25% at 130, and loses by 78% at 1741, crossover near 170.
 - Over a few cheap pure rows it is the whole cost (3 rows, unordered: 0.87 ms, against 0.007 ms with `each`).

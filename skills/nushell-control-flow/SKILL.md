@@ -47,7 +47,7 @@ Predicates are row conditions, not closures: `where name =~ $re`, `take until na
 
 ### Cost
 
-`reduce --fold` that builds a list or record is quadratic, and `par-each` costs about a millisecond to enter, so it suits slow per-item work only; [`nushell-performance`](../nushell-performance/SKILL.md) has the cost model. Never `par-each` writes to shared state (files, SQLite, `$env`). Use `each --flatten` when each iteration yields a list (same cost as `each | flatten`, reads better).
+`reduce --fold` that builds a list or record is quadratic, and `par-each` costs about a millisecond to enter, so it pays only when the total work it spreads is well above that (slow per-item work, or a heavier body over many items); [`nushell-performance`](../nushell-performance/SKILL.md) has the cost model. Never `par-each` writes to shared state (files, SQLite, `$env`). Use `each --flatten` when each iteration yields a list (same cost as `each | flatten`, reads better).
 
 ## `reduce` parameter order
 
@@ -122,5 +122,5 @@ For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` ove
 ## Pitfalls
 
 - **`each` for env mutation** is the most common iteration bug. If the loop body touches `$env`, use `for` ([`nushell-env-scoping`](../nushell-env-scoping/SKILL.md) owns the rules).
-- **A command whose body ends in `try`/`catch` can stop catching when its output is piped to `ignore`** ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the result instead (`let _ = f`).
+- **A `try`/`catch` whose output reaches `ignore` can stop catching**, both when `try { … } | ignore` ends a body and when a command whose body ends in `try` is piped to `ignore` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the result instead (`let _ = f`, `let _ = try { … }`).
 - **`break` and `continue`** exist in `for`, `while` and `loop`. To transform a stream, prefer `take while` / `skip while` / `first N`; for a small scan that exits early and runs many times, a `for` with `break` is cheaper than `any` (see [`nushell-performance`](../nushell-performance/SKILL.md), pattern 4).

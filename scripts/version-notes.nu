@@ -90,21 +90,23 @@ def bullet [running: string]: record -> string {
 def notes []: nothing -> list<record> {
   let notes = open $DATA
   if ($notes | describe) !~ '^(list|table)' { error make --unspanned {msg: 'version-notes.nuon: not a list'} }
-  for n in $notes {
+  for n in ($notes | enumerate) {
+    if ($n.item | describe) !~ '^record' { error make --unspanned {msg: $"row ($n.index): not a record"} }
+    let n = $n.item
     let id = $n.id? | default '(no id)'
     let keys = $KEYS | get --optional ($n.kind? | default '')
     if $keys == null { error make --unspanned {msg: $"($id): kind must be option or diagnostic"} }
     let missing = $keys | where $it not-in ($n | columns)
     if ($missing | is-not-empty) { error make --unspanned {msg: $"($id): missing ($missing | str join ', ')"} }
     if ($n.skills | describe) !~ '^(list|table)' { error make --unspanned {msg: $"($id): skills must be a list"} }
-    if $n.kind == option and ($n.option.name? == null or ($n.option.enabled? | describe) != bool) {
+    if $n.kind == option and (($n.option | describe) !~ '^record' or $n.option.name? == null or ($n.option.enabled? | describe) != bool) {
       error make --unspanned {msg: $"($id): option needs a name and a bool enabled"}
     }
     let unknown = $n.skills | where not ($SKILLS | path join $it SKILL.md | path exists)
     if ($unknown | is-not-empty) { error make --unspanned {msg: $"($id): no skill ($unknown | str join ', ')"} }
     if $n.kind == diagnostic {
-      let bad = [$n.since $n.reproduced] | append ($n.until | default []) | where $it !~ $VERSION
-      if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version: ($bad | str join ', ')"} }
+      let bad = [$n.since $n.reproduced] | append ($n.until | default []) | where ($it | describe) != string or $it !~ $VERSION
+      if ($bad | is-not-empty) { error make --unspanned {msg: $"($id): not a version string: ($bad | to nuon)"} }
     }
   }
   $notes
@@ -150,10 +152,10 @@ def reference []: nothing -> string {
     ''
     '## Experimental options'
     ''
-    'Behavior the skills describe with the option at its default. These notes apply'
-    'only when the shell that runs the code has the option set the other way'
-    '(`debug experimental-options` lists the settings); the skills print them as a'
-    'condition, since they cannot see the settings of the shell you use.'
+    'Behavior that depends on an experimental option. The skills print a note as a'
+    'condition when the shell that runs the code could have the option set either way'
+    '(`debug experimental-options` lists the settings), and as fact when the option''s'
+    'default in the running nu is the setting the note warns about.'
     ''
     '| Setting | Symptom | Repro | Workaround |'
     '|---|---|---|---|'

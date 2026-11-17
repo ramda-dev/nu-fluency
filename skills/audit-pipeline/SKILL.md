@@ -34,7 +34,7 @@ If the snippet is empty (no arguments, only `--read-only`, or the block above
 still shows the placeholder), lint the Nushell code you most recently wrote or
 ran. If the block holds only the path of a `.nu` file, lint that file: give its
 path to `nu-lint` in place of `--stdin` and the heredoc (inside WSL, convert it
-first with `wsl.exe --exec wslpath -u '<path>'` and pass the result with an
+first with `wsl.exe --exec wslpath -a -u '<path>'` and pass the result with an
 extra leading `/`, as for the config path below).
 
 ## Environment
@@ -95,7 +95,10 @@ Else, follow the [fallback](#fallback) instructions.
    ([definition](../../agents/generate-diagnostics.md)). Pass it the code to
    lint, un-escaped: the snippet, the code you most recently wrote or ran when
    the snippet is empty, or for a `.nu` path that path with an instruction to
-   Read the file and review its contents.
+   Read the file and review its contents. If nu-lint is installed but was not
+   found (inside WSL only in `~/.cargo/bin`, or the strict config path inside
+   WSL was `not found`), say so, so the agent recommends the README's symlink
+   step or a config fix instead of an install.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its
