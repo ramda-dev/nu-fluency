@@ -151,6 +151,9 @@ and behavior that depends on an experimental option. The idioms, control-flow,
 env-scoping and performance skills run `scripts/version-notes.nu` when they load
 and show only the notes that apply to the installed `nu`; the full table is
 [`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
+The command runs through Bash, or through PowerShell on Windows without Git Bash,
+and each skill allows it for both. It needs `nu` on `PATH`: without it those four
+skills fail to load.
 After editing the data, run
 `nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
 when the table is stale or an option note names an option the running `nu` lacks).

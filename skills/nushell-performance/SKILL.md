@@ -9,10 +9,12 @@ description: >
   `each`/`where`/`reduce`/`any` for speed, `par-each`, `debug profile`,
   `timeit`, `std bench`), or when judging a claimed speed-up.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
+allowed-tools:
+  - Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
+  - PowerShell(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.1
+  version: 0.1.2
 ---
 
 # Nushell Performance
@@ -40,7 +42,7 @@ use '${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'
 
 Known bugs for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance`
 
 ## Cost model
 

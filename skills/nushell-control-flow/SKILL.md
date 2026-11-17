@@ -7,10 +7,12 @@ description: >
   Use when writing loops, filters, maps, folds, branches or error paths in
   nu.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow *)
+allowed-tools:
+  - Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow *)
+  - PowerShell(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.2.1
+  version: 0.2.2
 ---
 
 # Nushell Control Flow
@@ -21,7 +23,7 @@ Syntax reference: [cheat-sheet → Control Flow](../nushell-idioms/references/ch
 
 Known bugs and option-dependent behavior for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow`
 
 ## Iteration: pick the right tool
 

@@ -8,10 +8,12 @@ description: >
   `nu_exec`/`nu_repl` MCP tools, or when the user mentions 'nushell',
   'nu script', 'nu pipeline', 'writing nu', 'calling nu_exec',
   'convert this to nu'.
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
+allowed-tools:
+  - Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
+  - PowerShell(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.2.1
+  version: 0.2.2
 ---
 
 # Nushell Idioms
@@ -24,7 +26,7 @@ traps and their idiomatic replacements.
 
 Known bugs and option-dependent behavior for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms`
 
 Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 
