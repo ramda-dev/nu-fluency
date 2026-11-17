@@ -4,8 +4,9 @@ description: Snapshot values from the nushell environment for the provided keys 
 user-invocable: true
 argument-hint: [<...keys>]
 allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_exec"]
+compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.0
+  version: 0.1.1
 ---
 
 # Env Snapshot
