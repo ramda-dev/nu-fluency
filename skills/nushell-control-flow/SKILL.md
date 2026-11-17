@@ -1,15 +1,16 @@
 ---
 name: nushell-control-flow
 description: >
-  This skill should be used when writing Nushell iteration, conditionals,
-  or error handling — `for`/`each`/`reduce`/`any`/`all`/`take while`,
-  `if`/`match`, `try/catch`, the `?` postfix operator. Especially relevant
-  when choosing between `for` (env-propagating) and `each` (isolated), or
-  when an error path needs to skip vs surface vs default. Trigger phrases:
-  "iterate", "loop", "filter", "map", "reduce", "for loop", "try catch",
-  "error handling", "match", "conditional".
-version: 0.2.0
+  Chooses the right Nushell iteration, conditional or error-handling form:
+  `for` vs `each`, `where`/`any`/`all`/`take while` row conditions,
+  `reduce`, `if`/`match`, what `$in` is, `try`/`catch` vs the `?` postfix.
+  Use when writing loops, filters, maps, folds, branches or error paths in
+  nu.
 user-invocable: false
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow *)
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Control Flow
@@ -17,6 +18,10 @@ user-invocable: false
 The single biggest decision in nu iteration is **`for` vs `each`** — they look similar, but they have completely different scope semantics. The single biggest decision in nu error handling is **`?` postfix vs `try/catch`** — they look unrelated, but they solve overlapping problems and `?` is almost always the right reach.
 
 Syntax reference: [cheat-sheet → Control Flow](../nushell-idioms/references/cheat-sheet.md#control-flow) and [Lists → Operations and Accessing](../nushell-idioms/references/cheat-sheet.md#lists).
+
+Known bugs and option-dependent behavior for the running nu, if any:
+
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-control-flow 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 ## Iteration: pick the right tool
 
@@ -26,22 +31,23 @@ Syntax reference: [cheat-sheet → Control Flow](../nushell-idioms/references/ch
 | `for x in $list { … }` | Nothing (side-effecting) | **Yes** | You're mutating state per iteration |
 | `where <row condition>` | Filtered list/table | **No** | Predicate filter (`where size > 1kb`, `where $it > 2`) |
 | `reduce -f INIT { \|x, acc\| … }` | Single accumulated value | **No** | Folding into one value |
-| `any { \|x\| … }` | Bool | **No** | "Is there any element matching?" |
-| `all { \|x\| … }` | Bool | **No** | "Do all elements match?" |
-| `take while { \|x\| … }` | Prefix of list | **No** | Slice up to first failing |
-| `skip while { \|x\| … }` | Suffix of list | **No** | Slice from first failing |
+| `any <row condition>` | Bool | **No** | "Is there any element matching?" |
+| `all <row condition>` | Bool | **No** | "Do all elements match?" |
+| `take while <row condition>` | Prefix of list | **No** | Slice up to first failing |
+| `skip while <row condition>` | Suffix of list | **No** | Slice from first failing |
 | `enumerate` | List of `{index, item}` | **No** | When you need the index |
 | `items { \|k, v\| … }` (on records) | List of closure results | **No** | Iterating record entries |
 
 **Rule**: if the loop body mutates `$env`, use `for`. Otherwise use the highest-level transform that fits: `each`/`where`/`reduce`/`any`/`all`/`take while`/`skip while`.
 
-Predicates are row conditions, not closures: `where name =~ $re`, `take until name == $x`, `any name == $n`, `all $it in $expected`. A column is named bare on the left of an operator; use `$it` for a scalar element or inside parentheses. A closure (`where {|r| … }`) is only for a predicate that needs more than one expression.
+Predicates are row conditions, not closures: `where name =~ $re`, `take until name == $x`, `any name == $n`, `all $it in $expected`. A column is named bare on the left of an operator; use `$it` for a scalar element or inside parentheses. A closure (`where {|r| … }`) is only for a predicate that needs more than one expression. Two cases a row condition misreads, each with its fix:
+
+- **A quoted string on the left of an operator is read as a column name**: `where bad and '.' not-in $it.at` fails with "Cannot find column '.'". Put that comparison in parentheses: `where bad and ('.' not-in $it.at)`.
+- **A bare word on the right is a string**: `where old != new` compares the column `old` with the text "new", not with the column `new`. Write `where old != $it.new`.
 
 ### Cost
 
-- **`reduce --fold` that builds a list or record is quadratic**: every step copies the accumulator. At 5,000 items, `reduce --fold [] { … append … }` took about a second against 3.9 ms for `each --flatten` (nu 0.117.1-nightly). Fold only to a scalar, and prefer a builtin (`math sum`, `str join`) when one exists.
-- **`par-each` costs just under 1 ms per call before any work** (0.83 ms on nu 0.117.1-nightly). It only pays off when each item does slow work (I/O, an external program, a heavy body) and there are many items; trivial per-item work is faster with `each` until well over a thousand items. Never `par-each` writes to shared state (files, SQLite, `$env`).
-- **`each --flatten`** when each iteration yields a list (same cost as `each | flatten`, reads better).
+`reduce --fold` that builds a list or record is quadratic, and `par-each` costs about a millisecond to enter, so it pays only when the total work it spreads is well above that (slow per-item work, or a heavier body over many items); [`nushell-performance`](../nushell-performance/SKILL.md) has the cost model. Never `par-each` writes to shared state (files, SQLite, `$env`). Use `each --flatten` when each iteration yields a list (same cost as `each | flatten`, reads better).
 
 ## `reduce` parameter order
 
@@ -68,7 +74,7 @@ Pipeline input flows implicitly, and a bash reader's instincts about "nothing" a
 
 - **An empty block or `()` passes the input through.** `5 | if false { 1 } else { }` is `5`, and a `match` arm `=> ()` returns the match's input. An empty `else` is an identity, not "produce nothing"; to discard, write `null` or pipe to `ignore`.
 - **Inside a `match` arm, `$in` is the match's pipeline input, not the subject.** In `$p | match ($in | path type) { dir => (glob $"($in)/**") }` the arm's `$in` is the path. When both appear, bind the value first (`let p = …; match ($p | path type) { … }`).
-- **Only a block's first statement receives its input implicitly.** A later `if ($in | is-empty) { … } else { $in | length }` can see the input in the condition and an empty `$in` in the body (`[1 2] | do { let y = 3; if ($in | is-empty) { … } else { $in | length } }` gives `0`). Bind the input in the first statement (`let xs;` with no initializer binds it) or write `$in | if …`.
+- **Only a block's first statement receives its input implicitly.** Later statements reach it through `$in`, but an `if` or `match` there can see the input in its condition and an empty `$in` in a body written as a block, an `if` branch or a `match` arm in `{…}` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the input in the first statement (`let xs;` with no initializer binds it) or write `$in | if …`.
 - **`each` doubles as "apply if present"**: piped a scalar or record it runs the closure once and returns the bare result; piped `null` it skips the closure. Use it that way only where the value can never be a list.
 
 ## Bare words in arms
@@ -79,7 +85,7 @@ In expression position a bare word is a command call. `match $x { null => writte
 
 ### The `?` postfix — first reach
 
-For "this might be missing, default if so". Use `?` **inline on the cell path itself**, not as a wrapper around the access — `$record.deeply.nested.field?` returns null at the first missing link rather than erroring, and `$list.10?` is the list-index equivalent. Compose with `default` to substitute a value: `$record.name? | default "anonymous"`.
+For "this might be missing, default if so". Use `?` **inline on the cell path itself**, not as a wrapper around the access — `$record.deeply?.nested?.field?` returns null at the first missing link rather than erroring (`?` covers only the member it follows), and `$list.10?` is the list-index equivalent. Compose with `default` to substitute a value: `$record.name? | default "anonymous"`.
 
 ### `try/catch` — when something else might throw
 
@@ -95,11 +101,13 @@ try {
 The catch closure receives an error record with `msg`, `debug`, `raw`, etc. The closure's return value becomes the expression's value if it threw.
 
 **Use `try/catch` when**:
+
 - Something other than a missing field could go wrong (file I/O, parse errors, external commands).
 - You need to inspect the error (e.g., log `$e.msg`).
 - The retry logic isn't expressible as a default.
 
 **Don't use `try/catch` to**:
+
 - Guard against null/missing fields → use `?` instead.
 - Suppress all errors silently → at minimum log to stderr; better, fix the root cause.
 
@@ -109,13 +117,10 @@ The catch closure receives an error record with `msg`, `debug`, `raw`, etc. The 
 
 ## A note on iteration shortcuts
 
-For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. The `$it` implicit-element name works inside one-arg closures (`where $it > 2`), useful for short predicates that don't earn a named parameter. Use `enumerate` to pair each element with its index before mapping.
+For sum/product/min/max/avg, prefer `math sum` / `math product` / `math min` over a hand-rolled `reduce` — they read better and need no init value. `[] | math sum` raises an error rather than returning 0, so append a zero of the element type when the list can be empty: `append 0 | math sum` for numbers, `append 0ns` for durations, `append 0b` for filesizes (an `int` zero added to a duration or filesize is a type error). That fix is for `math sum` only: a zero changes `product`, `min`, `max` and `avg`, which also raise on an empty list, so test `is-empty` first for those. `$it` names the element inside a row condition (`where $it > 2`, `any $it > 2`); a closure has no `$it`, so name a parameter (`{|x| …}`) or use `$in`. Use `enumerate` to pair each element with its index before mapping.
 
 ## Pitfalls
 
-- **`each` for env mutation** is the most common iteration bug. If the loop body touches `$env`, use `for`.
-- **`reduce` param order** is element-first, accumulator-second — the opposite of most reduce APIs in other languages. Easy slip from muscle memory.
-- **Catching everything silently** is bad style — at least log to stderr.
-- **`try/catch` around a single cell-path access** is verbose; `?` is the inline form.
-- **`try`/`catch` stops catching when the enclosing command's output is piped to `ignore`** (a Nushell bug, still present in 0.117.0): with `def f [] { try { error make {msg: x} } catch { "caught" } }`, `f` and `f | to nuon` catch, but `f | ignore` lets the error escape and the `catch` block never runs. An inline `try {…} catch {…} | ignore` behaves. Discard such a command's output with `| to nuon | ignore` or bind it (`let _ = (f)`).
-- **`break` and `continue`** are not commonly used in nu pipelines (they exist in `for`/`while` loops but break the "transform a stream" mental model). Reach for `take while`/`skip while`/`first N` instead.
+- **`each` for env mutation** is the most common iteration bug. If the loop body touches `$env`, use `for` ([`nushell-env-scoping`](../nushell-env-scoping/SKILL.md) owns the rules).
+- **A `try`/`catch` whose output reaches `ignore` can stop catching**, both when `try { … } | ignore` ends a body and when a command whose result comes from a `try`, directly or through another command, is piped to `ignore` ([known bug](../nushell-idioms/references/nushell-diagnostics.md)). Bind the result instead (`let _ = f`, `let _ = try { … }`).
+- **`break` and `continue`** exist in `for`, `while` and `loop`. To transform a stream, prefer `take while` / `skip while` / `first N`; for a small scan that exits early and runs many times, a `for` with `break` is cheaper than `any` (see [`nushell-performance`](../nushell-performance/SKILL.md), pattern 4).

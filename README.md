@@ -7,6 +7,7 @@ A plugin that helps Claude write [Nushell](https://github.com/nushell/nushell) (
 ```nu
 # 1. Ensure your Nushell version is compatible
 version | get version # >= 0.117.0
+# (the skills' preprocessing was tested on Claude Code 2.1.326)
 # 2. Add the plugin marketplace
 claude plugin marketplace add zaynram/code-marketplace
 # 3. Install the `nu-fluency` plugin
@@ -46,7 +47,7 @@ REPL sessions piggybacking off of Nushell's built-in `nu --mcp`).
 
 The commands packaged in this plugin prefer to delegate diagnostics to [`nu-lint`](https://codeberg.org/wvhulle/nu-lint).
 
-`nu-lint` is a deterministic community linter for Nushell with ~150 rules across
+`nu-lint` is a deterministic community linter for Nushell whose rules are grouped into
 `idioms`, `posix`-replacement, `parsing`, `dead-code`, `runtime-errors`, and more.
 
 Most rules have auto-fixes, and the rules themselves respect the nuance of diverging
@@ -59,6 +60,13 @@ from the status quo in the age of LLM.
 # `--locked` - Pins the lockfile's dependency versions.
 cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
+
+On Windows, `/audit-pipeline` finds a native nu-lint in `%USERPROFILE%\.cargo\bin`
+only when that folder is on `PATH`; the hook also checks that folder directly.
+With nu-lint installed inside WSL, `/audit-pipeline` looks for it on the
+distribution's default `PATH` only, which does not include `~/.cargo/bin`. Link it
+there (`sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`), or the skill falls
+back to the agent.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is
 unavailable. The only downside is losing out on deterministic diagnostics.
@@ -95,8 +103,8 @@ hover info, and auto-fixes any time it edits a Nushell file.
 
 | Type | Count | Purpose |
 |---|---|---|
-| Skills | 11 | `/nushell-{idioms,records,env-scoping,strings,control-flow,modules,performance}`, `/inspect-shape`, `/env-snapshot`, `/audit-pipeline`, `/command-help` |
-| Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` isn't installed (**experimental**) |
+| Skills | 11 | `/nushell-idioms`, `/env-snapshot`, `/audit-pipeline`, `/command-help`; model-only: `inspect-shape`, `nushell-{records,env-scoping,strings,control-flow,modules,performance}` |
+| Agents | 1 | Fallback review agent for `/audit-pipeline` when `nu-lint` is not installed or cannot be found (**experimental**) |
 | Hooks | 2 | Pre-`Bash` nudge toward nu equivalents; post-`nu_exec`/`nu_repl_write` hook that runs `nu-lint` on the executed code |
 | LSP | 1 | `nu --lsp` via `lspServers` in `.claude-plugin/plugin.json` |
 | Configs | 2 | `configs/hook.nu-lint.toml`, `configs/strict.nu-lint.toml` |
@@ -109,17 +117,20 @@ hover info, and auto-fixes any time it edits a Nushell file.
 — (entry point) deep syntax lookup reference
 ([`cheat-sheet.md`](skills/nushell-idioms/references/cheat-sheet.md)),
 `bash` → `nu` equivalents, pointers to nu-lint.
-- **`/inspect-shape <expr>`**
-— runs `<expr> | describe` + a sample row through `nu_exec`. Structural intuition.
 - **`/env-snapshot [keys...]`**
 — `$env | select --optional <keys>` with sensible defaults.
-- **`/audit-pipeline <pipeline>`**
-— runs nu-lint (or falls back to the experimental agent if nu-lint isn't installed).
+- **`/audit-pipeline [<snippet or .nu path>] [--read-only]`**
+— runs nu-lint on the snippet (or on the code Claude last wrote) and applies fixes;
+`--read-only` only reports, with `nu-lint --explain` per rule. Falls back to the
+experimental agent, which only suggests fixes, when nu-lint is not installed or cannot be found.
 - **`/command-help <name>`**
 — inline help lookup via `nu_doc_help`.
 
 #### Model-Only
 
+- **`inspect-shape`**
+— runs an expression through `nu_exec` and returns its detailed type, length
+and first rows. Structural intuition.
 - **`nushell-records`**
 — records, tables, cell paths, `record each` / `record where`.
 - **`nushell-env-scoping`**
@@ -131,7 +142,18 @@ hover info, and auto-fixes any time it edits a Nushell file.
 - **`nushell-modules`**
 — `module`/`use`/`export def`/`export-env`/`main`.
 - **`nushell-performance`**
-— closure-entry cost model, profile-first workflow, `probe` kit (`scripts/probe.nu`).
+— closure-entry cost model, profile-first workflow, `probe` kit ([`skills/nushell-performance/scripts/probe.nu`](skills/nushell-performance/scripts/probe.nu)).
+
+### Version notes
+
+[`scripts/version-notes.nuon`](scripts/version-notes.nuon) lists known Nushell bugs
+and behavior that depends on an experimental option. The idioms, control-flow,
+env-scoping and performance skills run `scripts/version-notes.nu` when they load
+and show only the notes that apply to the installed `nu`; the full table is
+[`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
+After editing the data, run
+`nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
+when the table is stale or an option note names an option the running `nu` lacks).
 
 ### Hooks
 
@@ -150,7 +172,7 @@ pipes it through `nu-lint --stdin --format compact` using the narrow
 there are diagnostics surfaced.
 
 The hook config is intentionally conservative
-— `posix`, `idioms`, `parsing` groups only
+— `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
 — so it fires on bash-translation patterns and skips stylistic noise.
 
 For broader analysis, use `/audit-pipeline`
@@ -167,7 +189,8 @@ Transforms collapse into pipeline stages.
 2. Records are nu's primary data structure.
 3. Env mutations propagate through keyword blocks
 (e.g. `for`/`while`/`loop`, `match`, `if`/`else if`/`else`),
-and certain commands with flags (i.e. `collect --keep-env`, and `do --env`).
+and certain commands with flags (`do --env`, and `def --env` for commands;
+`collect --keep-env` does not, despite its help text).
 The closures used in `each`/`items`/`reduce` and bare `do`/`collect` do not propagate
 environment mutations.
 4. Optional access (`<cell-path>?`) postfix on cell paths returns `null`.

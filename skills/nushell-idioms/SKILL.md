@@ -1,13 +1,28 @@
 ---
 name: nushell-idioms
-description: Educates and reinforces idiomatic Nushell patterns as a knowledge base to avoid writing bash-translated patterns in Nushell code. Use when writing, reading, debugging, or executing Nushell code (e.g. a `.nu` script, a `.nuon` file, the `nu_exec`/`nu_repl` MCP tools) or when the user mentions 'nushell', 'nu script', 'nu pipeline', 'writing nu', 'calling nu_exec', 'convert this to nu'.
-compatibility: { nu: '>=0.117.0' }
-version: 0.2.0
+description: >
+  Idiomatic Nushell instead of bash translated into nu: structured data,
+  pipelines over `let` chains, bash-to-nu equivalents and the common traps.
+  Use whenever writing, reading, debugging or running Nushell (`.nu` and
+  `.nuon` files, the `nu_exec`/`nu_repl` tools) or converting shell code to
+  nu.
+allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms *)
+compatibility: Requires Nushell 0.117.0 or later.
+metadata:
+  version: 0.2.1
 ---
 
 # Nushell Idioms
 
-Nushell is a **structural-data-first** shell.
+Nushell is a **structural-data-first** shell: parse text into records, lists and
+tables once, transform them with pipelines, and render text only at the end. The
+biggest source of mistakes is reaching for bash patterns: bash dominates training
+data, and its text streams cloud intuition about nu. This skill names the common
+traps and their idiomatic replacements.
+
+Known bugs and option-dependent behavior for the running nu, if any:
+
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-idioms 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
 
 Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 
@@ -17,13 +32,6 @@ Native types outside of base primitives (`string`, `int`, etc.) are expansive:
 - `filesize` -> byte-measurement unit (uses suffix; e.g. `3GB`)
 - `duration` -> timespan-measurement unit (uses suffix; e.g. `2sec`)
 - `datetime` -> temporal-measurement unit (run `date --help` in nu for more info)
-
-The biggest source of mistakes when writing nu is reaching for bash patterns.
-
-- Bash uses text-streaming which can cloud intuition about Nushell.
-- Bash dominates training data and surfaces for shell-related operations.
-
-This skill names many common traps and their idiomatic replacements.
 
 ## Self-Prompted Reflection
 
@@ -38,11 +46,15 @@ Majority of the time, it's a transformation and does not need assignment.
 
 Two `let` forms exist and behave differently:
 
-- **Statement form** `let name: TYPE = <expr>` is parse-time.
-Enforced type annotations (record/string mismatches reject).
-- **Pipeline form** `<pipeline> | let name` is runtime.
-Enforcement of type annotations in this form is subject to the configured
-experimental options and Nushell version (>=0.114.0 enforces by default).
+- **Statement form** `let name: TYPE = <expr>`: the annotation is checked at
+parse time when the parser can prove a mismatch (`let n: int = "a"` is a parse
+error), and when the value arrives otherwise (`from json`, `open`, an external,
+and some literals, such as `{}` for `record<x: int>`).
+- **Pipeline form** `<pipeline> | let name: TYPE`: the annotation is checked
+when the value arrives.
+
+The checks made when the value arrives depend on the
+`enforce-runtime-annotations` experimental option.
 
 ## Bash to Nushell Equivalents
 
@@ -50,18 +62,18 @@ experimental options and Nushell version (>=0.114.0 enforces by default).
 |---|---|
 | `$( cmd \| jq … )` capture and parse | `cmd \| from json` (nu reads JSON, YAML, CSV, TOML natively) |
 | `for x in $(ls); do …; done` | `ls \| each { \|f\| … }` or `for f in (ls) { … }` |
-| `grep pattern file` | `open file \| where $it =~ "pattern"` (or `find "pattern"`) |
-| `awk '{print $2}'` | `split column " " \| get column2` |
-| `sed 's/a/b/'` | `str replace 'a' 'b'` |
-| `cat f \| head -n 5` | `open f \| first 5` |
-| `wc -l < file` | `open file \| lines \| length` |
+| `grep pattern file` | `open --raw file \| lines \| where $it =~ 'pattern'` (or `find --no-highlight --regex 'pattern'`; single quotes keep regex backslashes literal; without `--regex`, `find` matches a literal substring, and without `--no-highlight` it wraps matches in ANSI highlighting) |
+| `awk '{print $(2)}'` | `lines \| str trim \| split column --regex '\s+' \| get column1?` (columns count from `column0`; a line with fewer fields gives null) |
+| `sed 's/a/b/'` | `lines \| str replace --regex 'a' 'b'` (per line, like sed; drop `--regex` for a literal match; add `--all` for `s/a/b/g`; sed's `\1` back-references are written differently, see the [cheat sheet](./references/cheat-sheet.md#strings)) |
+| `cat f \| head -n 5` | `open --raw f \| lines \| first 5` |
+| `wc -l < file` | `open --raw file \| lines \| length` |
 | `arr=(a b c); echo "${arr[1]}"` | `let arr = [a b c]; $arr.1` |
 | `[[ -n "$x" ]]` | `($x \| is-not-empty)` |
 | `if [[ "$x" == "y" ]]; then …; fi` | `if $x == "y" { … }` |
-| `read -r line` | (rare; nu is non-interactive by default in scripts) |
-| `printf "%s\n" "${arr[@]}"` | `$arr \| each { print $in }` (rare; most times `$arr` suffices) |
-| `cmd 2>/dev/null` | `cmd e>\| ignore` (drop stderr); `cmd \| complete` to capture both for inspection |
-| `set -e` | (built-in; pipelines stop on first error unless `try` wraps) |
+| `read -r line` | `let line = input` (reads the terminal, not stdin; rare in scripts) |
+| `printf "%s\n" "${arr[@]}"` | `for x in $arr { print $x }` (rare; most times `$arr` suffices) |
+| `cmd 2>/dev/null` | `cmd err> /dev/null` (`err> NUL` on Windows; keeps stdout and still fails on a non-zero exit); `cmd e>\| ignore` prints stdout, returns nothing and does not fail on a non-zero exit; `cmd \| complete` keeps stdout, stderr and `exit_code` without raising |
+| `set -e` | (built-in for a pipeline that is its own statement, unless `try` wraps it; an external that fails mid-pipeline (`^false \| lines`) does not stop it when that pipeline is bound with `let`, is used as a value inside a subexpression (an argument, a condition) or is the value a command, closure or `do` block returns (see the [known-bug notes](./references/nushell-diagnostics.md)), so use `complete` and check `exit_code` there) |
 
 ## Anti-Patterns: Common Mistakes
 
@@ -92,7 +104,7 @@ Commands use closures
 (e.g. `[par-]each`, `items`, `reduce`, `upsert`)
 and, by default, do not propagate environment changes.
 
-- `collect` with `--keep-env`/`do` with `--env` will enable `$env` propagation.
+- `do --env` (or `def --env` for a command) enables `$env` propagation; `collect --keep-env` does not, despite its help text ([known bug](./references/nushell-diagnostics.md)).
 
 ```nu
 # anti-pattern — `each` runs a closure, not a block
@@ -100,7 +112,7 @@ and, by default, do not propagate environment changes.
 $env.LAST  # error: not set
 # idiomatic — `for` runs a block
 for n in [1 2 3] { $env.LAST = $n }
-$env.LAST  # "3"
+$env.LAST  # 3
 ```
 
 ### 3. `try/catch` swallowing a single cell-path access
@@ -152,9 +164,9 @@ def count-lines []: string -> int { lines | length }
 
 ```nu
 # anti-pattern — reads as string replacement
-$nu.data-dir | path basename --replace nupm/modules
+$nu.data-dir | path basename --replace my-tool/cache
 # idiomatic — says "sibling of data-dir"
-$nu.data-dir | path dirname | path join nupm modules
+$nu.data-dir | path dirname | path join my-tool cache
 ```
 
 ## Anti-Patterns: False Positives
@@ -291,6 +303,10 @@ Use the mapping below to compound relevant sibling skills:
 
 - Load for writing/organizing nu code into reusable units.
 
+[`nushell-performance`](../nushell-performance/SKILL.md)
+
+- Load when nu code is slow or about to run over large inputs.
+
 ## References
 
 [cheat sheet](./references/cheat-sheet.md)
@@ -307,25 +323,16 @@ the conceptual reference.
 - Framework-free guidance for testing Nushell code: assertions, child
 interpreters, sandboxed environments, and why tests are called by literal name.
 
-## Language Protocols: Nushell LSP and Nu-Lint
+[diagnostics](./references/nushell-diagnostics.md)
 
-The bundled LSP uses the native `nu --lsp` server,
-which provides realtime diagnostics when working on Nushell files.
+- Known Nushell bugs the skills work around, each with a repro, a workaround
+and the versions it was reproduced on, plus behavior that depends on an
+experimental option. Read when nu behaves against what a skill says.
 
-When available, the `nu-lint` command provides much richer diagnostics,
-and is what the plugin's post-`nu_exec` hook calls when checking a pipeline.
+[tooling](./references/tooling.md)
 
-It's a deterministic community-maintained linter with ~150 rules, most
-notably, the `posix` rule-group which aims to "replace common bash/posix patterns".
-These rules cover a large subset of bash → nu translation traps.
-
-Useful entry points:
-
-- `nu-lint <path>` — lint files in a directory (default `.`)
-- `nu-lint --stdin --format=compact` — lint a snippet from stdin, one line per finding
-- `nu-lint --explain <rule>` — full rationale for a specific rule
-- `nu-lint --list` — every available rule, by group
-- `nu-lint --fix <path>` — apply auto-fixes (most rules support this)
+- The bundled `nu --lsp` server and the `nu-lint` linter: what each checks and
+its entry points. Read when setting up or interpreting diagnostics.
 
 ## Constraints
 

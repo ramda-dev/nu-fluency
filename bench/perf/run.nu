@@ -1,7 +1,10 @@
-# Re-measures the figures in skills/nushell-performance/SKILL.md, plus the performance claims in the
-# nushell-records and nushell-control-flow skills and the closure forms added in nu 0.116 and 0.117,
-# and prints them as one NUON record.
-# Run from the repository root: nu --no-config-file bench/perf/run.nu
+# Re-measures the figures in skills/nushell-performance/references/ (cost-model.md, including the closure
+# forms added in nu 0.116 and 0.117 but not the two-glob par-each case, the login-config ratio, or the
+# `while` / `if` entries, or the formatter crossover point, which it brackets but does not locate; the
+# case-studies.md items re-measured on 0.117.1;
+# debug-profile.md except its 0.115.2 entry counts) and the pitfalls in nushell-control-flow (row conditions,
+# `[] | math sum`), and prints them as one NUON record.
+# Run from any directory: nu --no-config-file <plugin root>/bench/perf/run.nu
 # Progress goes to stderr; stdout carries only the record. Nothing is written to disk.
 
 use ../../skills/nushell-performance/scripts/probe.nu
@@ -194,7 +197,7 @@ let nested_per_element_us = section nested_per_element_us {
   }
 }
 
-# nushell-records claims: 5,000 fields.
+# Record transforms (cost-model.md#record-transforms): 5,000 fields.
 let records_ms = section records_ms {
   let rec = 1..5000 | each {|i| [$'k($i)' $i] } | into record
   let keys = $rec | columns
@@ -212,7 +215,7 @@ let records_ms = section records_ms {
   }
 }
 
-# nushell-control-flow claim: building a list with reduce is quadratic.
+# Loop shapes (cost-model.md#loop-shapes): building a list with reduce is quadratic.
 let control_flow_ms = section control_flow_ms {
   let big = do $ints 5000
   {
@@ -221,7 +224,8 @@ let control_flow_ms = section control_flow_ms {
   }
 }
 
-# Closure-free options that 0.116/0.117 added or changed, against the closure forms they replace.
+# Builtins worth knowing (cost-model.md#builtins-worth-knowing): closure-free options that 0.116/0.117
+# added or changed, against the closure forms they replace.
 let closure_free_ms = section closure_free_ms {
   let left = 1..1000 | each {|i| {k: $i} }
   let right = 1..500 | each {|i| {k: ($i * 2)} }
@@ -243,8 +247,8 @@ let closure_free_ms = section closure_free_ms {
   }
 }
 
-# The skill times par-each from fresh processes; this repeats the 1741-element case in one process to see
-# whether the unordered form's slowdown on the XPS run is stable or a one-off.
+# cost-model.md#par-each reports the 1741-element case; this repeats it three times in one process to see
+# whether the unordered form's slowdown in that run (one WSL2 laptop, 22 CPUs) is stable or a one-off.
 let par_each_repeat = section par_each_repeat {
   let s = do $ints 1741
   1..3 | each {|round|

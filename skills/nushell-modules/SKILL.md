@@ -206,26 +206,15 @@ time; compute it in a `def`.
 import into the parent scope. Only runtime work in an `export-env` (a scan, a
 child process) can move to a background job; spawn it with `--auto-kill`, or
 interactive `exit` refuses once while it runs.
-- `$nu.startup-time` covers the whole boot but does not register config
-evaluation in every mode (`--config … -e`), so measure an import as process
-wall time: `timeit { ^nu --no-config-file -c 'use mymod; null' }`, minus a bare
-`^nu --no-config-file -c null`.
+- To measure what an import costs, see [import cost and `nu_exec`](./references/import-cost.md).
 
 ## Modules with `nu_exec`
 
-When using the `mcp__nushell__nu_exec` tool, internally it wraps the pipeline
-by a `do {  }` call, writes it to a temporary script file, and invokes it as
-`nu <script> ...<options>`. This inadvertently inhibits scope introspection and
-any relative paths to the `cwd` in `use` calls will error.
-
-This is a documented limitation in the server, and is an actively tracked issue.
-For now, there are a few methods for using modules with the `nushell-mcp`:
-
-1. Set `const NU_LIB_DIRS = [...]` at the start of the pipeline to include the
-parent directories of any modules or scripts before calling `use`.
-2. Use `nu_repl` instead of `nu_exec`. REPL sessions are not subject to this limitation.
-3. Use absolute paths in any `use` calls, so resolution doesn't depend on the
-script's location.
+`nu_exec` runs a pipeline from a temporary script, so a relative `use` does not
+resolve against `cwd` there. Pass `structured: false` or `includeDirs` (a REPL
+bucket resolves a relative `use` against the server's start directory, not a
+`cd`, so it is no fix by itself); [import cost and `nu_exec`](./references/import-cost.md) has the details
+and the other workarounds.
 
 ## Anti-Patterns
 
