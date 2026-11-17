@@ -52,14 +52,18 @@ The plugin's [`scripts/lint.nu`](../../scripts/lint.nu) finds nu-lint (on
 code it reads from stdin, so the snippet never passes through a shell and needs
 no quoting or escaping, whatever quotes or braces it holds.
 
-1. Call `nu_exec` with `structured: false`, the snippet (with the escaping
-   undone) as `input`, exactly as written, and this pipeline:
+1. Call `nu_exec` with `structured: false`, this pipeline, and as `input` the
+   snippet's raw text with the escaping undone. Pass the text itself: the tool
+   describes `input` as NUON or JSON, but here it must not be quoted or
+   encoded, or nu-lint lints a single string literal and reports it clean.
 
    ```nu
    use '${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'; $in | lint check strict | to json
    ```
 
-   For a `.nu` file, pass its path as `input` instead and read the file:
+   For a `.nu` file, pass its absolute path as `input` instead, as plain text,
+   and read the file (a relative path resolves against the MCP server's
+   directory, not the project's):
 
    ```nu
    use '${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'; open --raw ($in | str trim) | lint check strict | to json
@@ -85,8 +89,8 @@ no quoting or escaping, whatever quotes or braces it holds.
    Read the file and review its contents. Name the fix that applies, so the
    agent adds it to its recommendation: when nu-lint was not found, "install
    nu-lint (`cargo install --git https://codeberg.org/wvhulle/nu-lint --locked`);
-   it is found on `PATH`, in `~/.cargo/bin`, or on Windows in
-   `%USERPROFILE%\.cargo\bin` or inside WSL"; when `nu_exec` failed, what failed.
+   it is found on `PATH`, in `$CARGO_HOME/bin`, `~/.cargo/bin` or
+   `~/.local/share/cargo/bin`, or on Windows also inside WSL"; when `nu_exec` failed, what failed.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its

@@ -62,10 +62,10 @@ cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
 
 `/audit-pipeline` and the lint hook find nu-lint the same way, through
-[`scripts/lint.nu`](scripts/lint.nu): on `PATH`, then in `~/.cargo/bin` (on
-Windows also `%USERPROFILE%\.cargo\bin` and `%USERPROFILE%\.local\share\cargo\bin`),
-then on Windows inside the default WSL distribution, on its `PATH` or in its
-`~/.cargo/bin`. The code reaches nu-lint on stdin, never through a shell, so no
+[`scripts/lint.nu`](scripts/lint.nu): on `PATH`, then in `$CARGO_HOME/bin`,
+`~/.cargo/bin` or `~/.local/share/cargo/bin` (under `%USERPROFILE%` on Windows),
+then on Windows inside the default WSL distribution, on its `PATH` or in the same
+two cargo folders under its home. The code reaches nu-lint on stdin, never through a shell, so no
 snippet needs quoting, and inside WSL the config path is converted with `wslpath`.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is

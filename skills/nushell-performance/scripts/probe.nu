@@ -44,7 +44,9 @@ export def entries [code: closure]: nothing -> record<total: int, by: record, cl
   {total: ($by | values | append 0 | math sum) by: $by closure-or-value: (do $tally $MAYBE)}
 }
 
-# Median milliseconds of one run of `code`.
+# Median milliseconds of one run of `code`. Each run's result is bound (`let _ =`), not piped to `ignore`, so a
+# closure that ends in `try` keeps its catch (try-escapes-under-ignore); a streamed result is therefore collected,
+# which adds 0.1 to 0.2 us per element (nu 0.117.0). `compare` and `calibrate` time the same way.
 export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -> float {
   let _ = do $code
   1..$passes | each {
