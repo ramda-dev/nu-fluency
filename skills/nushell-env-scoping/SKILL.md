@@ -6,10 +6,12 @@ description: >
   and the automatic variables. Use when code sets or reads `$env`, or when
   an env change does not show up where expected.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping *)
+allowed-tools:
+  - Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping *)
+  - PowerShell(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.2.1
+  version: 0.2.2
 ---
 
 # Nushell Env Scoping
@@ -20,7 +22,7 @@ Syntax reference: [cheat-sheet → Env and Scope](../nushell-idioms/references/c
 
 Known bugs for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-env-scoping`
 
 ## The four propagation rules
 

@@ -9,10 +9,15 @@ A plugin that helps Claude write [Nushell](https://github.com/nushell/nushell) (
 version | get version # >= 0.117.0
 # (the skills' preprocessing was tested on Claude Code 2.1.326)
 # 2. Add the plugin marketplace
-claude plugin marketplace add zaynram/code-marketplace
+claude plugin marketplace add zaynram/cowork-marketplace
 # 3. Install the `nu-fluency` plugin
-claude plugin install nu-fluency@ramda-code-marketplace
+claude plugin install nu-fluency@ramda-cowork-marketplace
 ```
+
+On Windows, the plugin expects Git Bash to be installed, as most development setups have
+it. Windows without Git Bash is untested: the version-notes skills are written to run
+through PowerShell there (see [Version notes](#version-notes)), but nothing else has been
+checked in that environment.
 
 ## Background
 
@@ -61,12 +66,16 @@ from the status quo in the age of LLM.
 cargo install --git https://codeberg.org/wvhulle/nu-lint --locked
 ```
 
-On Windows, `/audit-pipeline` finds a native nu-lint in `%USERPROFILE%\.cargo\bin`
-only when that folder is on `PATH`; the hook also checks that folder directly.
-With nu-lint installed inside WSL, `/audit-pipeline` looks for it on the
-distribution's default `PATH` only, which does not include `~/.cargo/bin`. Link it
-there (`sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`), or the skill falls
-back to the agent.
+`/audit-pipeline` and the lint hook find nu-lint the same way, through
+[`scripts/lint.nu`](scripts/lint.nu): on `PATH`, then in `$CARGO_HOME/bin`,
+`~/.cargo/bin` or `~/.local/share/cargo/bin` (under `%USERPROFILE%` on Windows),
+then on Windows inside the default WSL distribution, on its `PATH` or in the same
+two cargo folders under its home. The code reaches nu-lint on stdin, never through a shell, so no
+snippet needs quoting, and inside WSL the config path is converted with `wslpath`.
+`/audit-pipeline` runs through the Nushell MCP server, which a host may start with
+the MCP SDK's short default list of environment variables (`HOME`, `USERPROFILE` and
+`PATH` among them, not `CARGO_HOME`), so a nu-lint that sits only under a custom `$CARGO_HOME` reaches the
+hook but not `/audit-pipeline`: put its `bin` folder on `PATH` instead.
 
 The hook system is inert by default, and will not warn or error when `nu-lint` is
 unavailable. The only downside is losing out on deterministic diagnostics.
@@ -151,6 +160,9 @@ and behavior that depends on an experimental option. The idioms, control-flow,
 env-scoping and performance skills run `scripts/version-notes.nu` when they load
 and show only the notes that apply to the installed `nu`; the full table is
 [`nushell-diagnostics.md`](skills/nushell-idioms/references/nushell-diagnostics.md).
+The command runs through Bash, or through PowerShell on Windows without Git Bash
+(untested), and each skill allows it for both. It needs `nu` on `PATH`: without it those four
+skills fail to load.
 After editing the data, run
 `nu --no-config-file scripts/version-notes.nu render --write` (`check` fails
 when the table is stale or an option note names an option the running `nu` lacks).
@@ -165,11 +177,15 @@ It never blocks or changes the permission decision; the command runs either way.
 Cases live in `hooks/tests/nu-over-bash.nu`
 (`nu --no-config-file hooks/tests/nu-over-bash.nu`).
 
-Post-tool-use hook on MCP `nu_exec` and `nu_repl_write` calls.
+Post-tool-use hook on MCP `nu_exec` and `nu_repl_write` calls, registered for both
+`PostToolUse` and `PostToolUseFailure`, so a call that errors is linted too.
 Reads the tool's `pipeline` (or `input`) argument from stdin (JSON),
-pipes it through `nu-lint --stdin --format compact` using the narrow
-`configs/hook.nu-lint.toml`, and surfaces findings as a block reason iff
-there are diagnostics surfaced.
+lints it through `scripts/lint.nu` with the narrow `configs/hook.nu-lint.toml`
+(inside WSL too), and surfaces findings as a block reason iff there are
+diagnostics surfaced.
+
+Cases live in `hooks/tests/lint-pipeline.nu`, with a stub nu-lint
+(`nu --no-config-file hooks/tests/lint-pipeline.nu`).
 
 The hook config is intentionally conservative
 — `posix`, `idioms`, `parsing` as warnings and `dead-code` as hints
@@ -203,6 +219,7 @@ Don't `print` what you're returning.
 ## Tests
 
 - `nu --no-config-file hooks/tests/nu-over-bash.nu` runs the Bash-nudge hook cases.
+- `nu --no-config-file hooks/tests/lint-pipeline.nu` runs the lint hook and runner cases with a stub nu-lint.
 - `claude plugin eval . --tag triggers --ablation none --runs 1` runs the skill
 trigger round-trip cases in `tests/triggers/`: each skill has a prompt that must
 invoke it and a nearby prompt that must not. `tests/README.md` has the details.

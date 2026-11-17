@@ -18,9 +18,9 @@ def t [code: closure --rounds: int = 20 --passes: int = 5]: nothing -> float {
 
 # Microseconds for one call, the same harness as `probe calibrate`.
 def us [code: closure --rounds: int = 3000]: nothing -> int {
-  do $code | ignore
+  try { let _ = do $code } catch {|e| error make --unspanned {msg: $"the timed closure failed: ($e.msg)"} }
   let start = date now
-  for _ in 1..$rounds { do $code | ignore }
+  for _ in 1..$rounds { let _ = do $code }
   ((date now) - $start) / $rounds / 1us | math round
 }
 

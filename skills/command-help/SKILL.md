@@ -1,21 +1,26 @@
 ---
 name: command-help
 description: Get helpful information using the `nu_doc_help` and `nu_doc_search` MCP tools. Use when searching for a command, querying available commands, needing information about a command, inspecting a command signature (e.g. I/O contract, parameter types, return types), or when the user mentions "nu help", "query the nu docs", "what does {command} do", or "is there a nu command for this".
-arguments: [query]
-argument-hint: [<query>]
+argument-hint: "[<query>]"
 allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_doc_help", "mcp__plugin_nu-fluency_nushell__nu_doc_search"]
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.4
+  version: 0.1.5
 ---
 
 # Command Help
 
 ## Procedure
 
-The query to use for the tool calls: `$query`
+The query to use for the tool calls is everything passed to the skill, which
+may be several words (`str replace`):
 
-If the query is empty, the user is pushing you to read Nushell
+```text
+$ARGUMENTS
+```
+
+If the query is empty (no arguments, or the block above still shows the
+placeholder), the user is pushing you to read Nushell
 documentation relevant to your recent activity. If you have not
 used the Nushell MCP tools (`nu_exec`, `nu_repl_*`, `nu_doc_*`)
 or are unable to determine this skill's relevance to your
@@ -24,7 +29,7 @@ session, inform the user and return.
 ### Exact Commands
 
 When the query is a complete command name, use the `nu_doc_help` tool
-with `name: $query` to search for an exact match.
+with the whole query as `name` to search for an exact match.
 
 - If found, render the `help` field neatly.
 - Else if `suggestions` is present, display them and offer to search for the best-match.
@@ -33,7 +38,7 @@ with `name: $query` to search for an exact match.
 ### Search Strings
 
 When the query is not a complete command, or is not found by `nu_doc_help`,
-then call `nu_doc_search` with `$query`.
+then call `nu_doc_search` with the query.
 
 - If there is an exact match to the query, run the `nu_doc_help` tool on
 the matching item and present the information to the user.

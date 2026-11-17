@@ -1,11 +1,11 @@
 ---
 name: inspect-shape
-description: Inspects the structure of a `nu` expression and return it's described type, length (if applicable), and the value itself. Use when you are uncertain about a pipeline result's data type, debugging Nushell code, testing that a Nushell expression produces an expected shape, or when the user mentions "typecheck", "unknown data types", "inspect the shape", or "what kind of data".
+description: Inspects the structure of a `nu` expression and returns its described type, length (if applicable), and the value itself. Use when you are uncertain about a pipeline result's data type, debugging Nushell code, testing that a Nushell expression produces an expected shape, or when the user mentions "typecheck", "unknown data types", "inspect the shape", or "what kind of data".
 user-invocable: false
 allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_exec"]
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.2
+  version: 0.1.3
 ---
 
 # Inspect Shape
@@ -15,7 +15,7 @@ metadata:
 Call `nu_exec` with `pipeline` set to:
 
 ```nu
-use '${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'
+use r#'${CLAUDE_PLUGIN_ROOT}/skills/inspect-shape/scripts/shape.nu'#
 <expression> | shape
 ```
 

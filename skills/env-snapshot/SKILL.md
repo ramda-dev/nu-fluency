@@ -2,10 +2,11 @@
 name: env-snapshot
 description: Snapshot values from the nushell environment for the provided keys as a record. Keys are optional; substitute the default set if omitted.
 user-invocable: true
-argument-hint: [<...keys>]
+argument-hint: "[<...keys>]"
 allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_exec"]
+compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.0
+  version: 0.1.1
 ---
 
 # Env Snapshot

@@ -2,17 +2,16 @@
 name: audit-pipeline
 description: Lints a Nushell snippet with `nu-lint` (or an agent fallback when it is not installed or cannot be found) and applies or reports the fixes. Use after writing or before running Nushell code (including `nu_exec`/`nu_repl` calls), when debugging it, or when asked for Nushell diagnostics or a nu-lint run.
 argument-hint: "[<nushell snippet or .nu path>] [--read-only]"
-allowed-tools: ["Bash(nu --version *)", "Bash(command -v nu-lint *)", "Bash(wsl.exe --exec which nu-lint *)", "Bash(nu-lint *)", "Bash(wsl.exe --exec nu-lint *)", "Bash(wsl.exe --exec wslpath *)", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
-shell: bash
+allowed-tools: ["mcp__plugin_nu-fluency_nushell__nu_exec", "Agent(nu-fluency:generate-diagnostics)", "Read(*)"]
+compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.0
+  version: 0.2.0
 ---
 
 # Audit Pipeline
 
-The `!`-executed probes and the argument substitution in the
-[snippet](#snippet) run once at invocation, like a slash command's
-preprocessing; this is not a recurring hook.
+The argument substitution in the [snippet](#snippet) happens once, at
+invocation, like a slash command's preprocessing; this is not a recurring hook.
 
 ## Snippet
 
@@ -28,8 +27,8 @@ the start of a word or line arrives as `` \! `` (so `!=` arrives as `\!=`), and 
 space is put between a backtick and an adjacent `!`, after which a `!` that
 starts a word gets the backslash too (`` `a b`! `` arrives as `` `a b` \! ``,
 and a word-initial `!` before a backtick as `` \! ``, a space and the backtick).
-Undo both wherever you use the snippet (the heredoc or the fallback agent's
-prompt). A space that was already next to the `!` (before it, or
+Undo both wherever you use the snippet (the `nu_exec` input or the fallback
+agent's prompt). A space that was already next to the `!` (before it, or
 between it and a backtick) cannot be told apart from an inserted one, so keep
 it only where the code needs it.
 
@@ -42,66 +41,51 @@ you wrote it instead.
 
 If the snippet is empty (no arguments, only `--read-only`, or the block above
 still shows the placeholder), lint the Nushell code you most recently wrote or
-ran. If the block holds only the path of a `.nu` file, lint that file: give its
-path to `nu-lint` in place of `--stdin` and the heredoc (inside WSL, convert it
-first with `wsl.exe --exec wslpath -a -u '<path>'` and pass the result with an
-extra leading `/`, as for the config path below).
-
-## Environment
-
-- Nushell version: !`nu --version 2>/dev/null || echo 'not found'`
-- Nu-Lint native installation path: !`command -v nu-lint 2>/dev/null || echo 'not found'`
-- Nu-Lint WSL installation path: !`wsl.exe --exec which nu-lint 2>/dev/null || echo 'not found'`
-- Strict config path inside WSL: !`wsl.exe --exec wslpath -u '${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml' 2>/dev/null || echo 'not found'`
-
-If the native Nu-Lint installation path is an absolute path (not
-`not found`), follow the standard [procedure](#procedure).
-
-Else, if the WSL installation path is an absolute path and the strict config
-path inside WSL is not `not found`, follow the standard
-[procedure](#procedure), but run the linter inside WSL with this command, the
-strict config path inside WSL found above in place of the placeholder:
-
-```bash
-wsl.exe --exec nu-lint --stdin --format compact --config "/<strict config path inside WSL>" <<'PIPELINE'
-<the snippet, with the escaping undone>
-PIPELINE
-```
-
-Write `wsl.exe --exec` exactly, so the skill's permission rule can cover it
-(a quote inside braces still prompts, as in the [procedure](#procedure)). The
-extra leading `/` stops Git Bash from rewriting the path into a Windows one;
-Linux reads `//work/…` as `/work/…`.
-Choose the heredoc delimiter as in the [procedure](#procedure).
-
-`wsl.exe --exec` runs its program without a shell, so neither probe nor
-command reads a shell profile: `nu-lint` is found only on the distribution's
-default `PATH`, not in a directory a profile adds (such as `~/.cargo/bin`).
-
-Else, follow the [fallback](#fallback) instructions.
+ran. If the block holds only the path of a `.nu` file, lint that file: pass the
+path as `input` and read it in the pipeline, as shown in the
+[procedure](#procedure).
 
 ## Procedure
 
-1. Run the linter on the snippet. Call it by name, `nu-lint`, as written
-   below rather than by the path found above, so the skill's permission rule
-   covers it. Claude Code (2.1.326) still asks for permission when the snippet
-   has a quote inside braces (`{name: 'x'}`, `do { "a" }`), whatever the
-   rule; that prompt is expected, and in a non-interactive run the call is
-   denied, so report that instead of retrying.
+The plugin's [`scripts/lint.nu`](../../scripts/lint.nu) finds nu-lint (on
+`PATH`, in the cargo install folders, or on Windows inside WSL) and runs it on
+code it reads from stdin, so the snippet never passes through a shell and needs
+no quoting or escaping, whatever quotes or braces it holds.
 
-   The quoted heredoc (`<<'PIPELINE'`) stops bash from expanding the snippet
-   as shell syntax. A snippet line that is exactly the delimiter would end the
-   heredoc early and run the lines after it as bash, so when any line of the
-   snippet is `PIPELINE`, pick a word that no line equals (`PIPELINE_END`,
-   `NU_SNIPPET_1`, …) and use it in both the opener and the closer.
+1. Call `nu_exec` with `structured: false`, this pipeline, `cwd` set to the
+   project's working directory (so a relative `use` in the snippet resolves
+   there), and as `input` the snippet's raw text with the escaping undone. Pass
+   the text itself: the tool describes `input` as NUON or JSON, but here it must
+   not be quoted or encoded, or nu-lint lints a single string literal and
+   reports it clean.
 
-   ```bash
-   nu-lint --stdin --format compact --config "${CLAUDE_PLUGIN_ROOT}/configs/strict.nu-lint.toml" <<'PIPELINE'
-   <the snippet, with the escaping undone>
-   PIPELINE
+   ```nu
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; $in | lint check strict | to json
    ```
 
-2. Render the diagnostics directly, one per line, with line/column references.
+   For a `.nu` file, pass its absolute path as `input` instead, as plain text.
+   The pipeline moves to the file's folder before reading it, so the file's own
+   relative `use` and `source` paths resolve; findings are reported against
+   `<stdin>`, so name the file when you render them:
+
+   ```nu
+   use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; let file = $in | str trim | path expand; cd ($file | path dirname); open --raw $file | lint check strict | to json
+   ```
+
+2. Read the JSON result:
+   - `linter` is null: nu-lint was not found or could not be started (`stderr`
+     says why). Follow the [fallback](#fallback).
+   - `diagnostics` is not empty: render the findings directly, one per line,
+     with their line/column references.
+   - `diagnostics` is empty and `exit_code` is 0: the snippet is clean.
+   - Otherwise nu-lint ran and failed: report its `stderr` and `output` and
+     stop; do not fall back.
+
+   If the `nu_exec` call itself fails, check the cause first: a `cd` or `open`
+   error for a path that was not found means the `.nu` path was wrong (make it
+   absolute and retry). Otherwise
+   (the tool is unavailable, or `nu` cannot load the script) say so and follow
+   the [fallback](#fallback).
 
 ## Fallback
 
@@ -109,15 +93,13 @@ Else, follow the [fallback](#fallback) instructions.
    ([definition](../../agents/generate-diagnostics.md)). Pass it the code to
    lint, un-escaped: the snippet, the code you most recently wrote or ran when
    the snippet is empty, or for a `.nu` path that path with an instruction to
-   Read the file and review its contents. Name the fix for the case that
-   applies, so the agent adds it to its recommendation: if the WSL
-   installation path was an absolute path but the strict config path inside
-   WSL was `not found`, "nu-lint was found in WSL, but `wslpath` could not
-   convert the plugin's config path; check that the plugin folder is on a
-   drive WSL mounts"; on a Windows host otherwise, "if
-   nu-lint is installed in `%USERPROFILE%\.cargo\bin`, add that folder to
-   `PATH`; if it is installed inside WSL in `~/.cargo/bin`, link it with
-   `sudo ln -s ~/.cargo/bin/nu-lint /usr/local/bin/nu-lint`".
+   Read the file and review its contents. Name the fix that applies, so the
+   agent adds it to its recommendation: when nu-lint was not found, "install
+   nu-lint (`cargo install --git https://codeberg.org/wvhulle/nu-lint --locked`);
+   it is found on `PATH`, in `$CARGO_HOME/bin`, `~/.cargo/bin` or
+   `~/.local/share/cargo/bin`, or on Windows also inside WSL", followed by the
+   result's `stderr` when it names another cause; when `nu_exec` failed, what
+   failed.
 2. Prepend a one-line caveat to your output indicating the diminished integrity.
 3. Present the agent's findings as it returns them (quoted snippet, why, the
    alternative), with its uncertainty note and install recommendation. Its
@@ -132,6 +114,7 @@ If the arguments do not start or end with the flag `--read-only`, apply
 sensible fixes automatically and await confirmation for further edits.
 
 Else, present the diagnostics to the user without making any changes, and
-for each diagnostic, surface the output of `nu-lint --explain <rule>`
-(`wsl.exe --exec nu-lint --explain <rule>` when the linter runs inside WSL;
-on the fallback path, name the related rule instead).
+for each diagnostic, surface nu-lint's explanation of its rule: call `nu_exec`
+with `structured: false` and the pipeline
+`use r#'${CLAUDE_PLUGIN_ROOT}/scripts/lint.nu'#; lint explain <rule>` (on the
+fallback path, name the related rule instead).

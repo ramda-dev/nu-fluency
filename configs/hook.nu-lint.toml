@@ -21,3 +21,9 @@
     runtime-errors = 'off'  # noisy on ad-hoc pipelines that intentionally don't error-handle
     external       = 'off'
     upstream       = 'off'
+
+[rules]
+    # Conflicts with `remove_hat_not_builtin`, as in strict.nu-lint.toml: with both
+    # on, nu-lint exits 1 with a config conflict before linting anything, and the
+    # hook would stay silent on every call.
+    add_hat_external_commands = 'off'

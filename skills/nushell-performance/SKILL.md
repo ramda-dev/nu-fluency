@@ -9,10 +9,12 @@ description: >
   `each`/`where`/`reduce`/`any` for speed, `par-each`, `debug profile`,
   `timeit`, `std bench`), or when judging a claimed speed-up.
 user-invocable: false
-allowed-tools: Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
+allowed-tools:
+  - Bash(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
+  - PowerShell(nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance *)
 compatibility: Requires Nushell 0.117.0 or later.
 metadata:
-  version: 0.1.1
+  version: 0.1.2
 ---
 
 # Nushell Performance
@@ -35,12 +37,12 @@ same nu 0.117.1-nightly runs, except the library cases, which are mostly from 0.
 [case studies](references/case-studies.md) mark each one re-run since).
 
 ```nu
-use '${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'
+use r#'${CLAUDE_PLUGIN_ROOT}/skills/nushell-performance/scripts/probe.nu'#
 ```
 
 Known bugs for the running nu, if any:
 
-!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance 2>/dev/null || echo 'Unavailable: nu was not found or the notes script failed.'`
+!`nu --no-config-file "${CLAUDE_PLUGIN_ROOT}/scripts/version-notes.nu" nushell-performance`
 
 ## Cost model
 
@@ -87,7 +89,8 @@ another module's `each` and a per-prompt hook condition.
 
 Not worth touching: anything bound by an external program or a system-enumerating builtin (`ps --long`, bare
 `which`, `git`, `gh`). The lever there is the external call itself (fewer calls, a narrower query, a cache),
-never the nu around it.
+never the nu around it. To time one anyway, end the closure in `| complete`: `probe time` and `probe compare` stop
+with an error on a closure whose external exits non-zero.
 
 Relative gain is not the bar. Multiply the microseconds saved by how often the trigger fires, and set that
 against what else runs on the same trigger: a 78% gain worth 46 us on one completer was correctly declined
@@ -202,4 +205,4 @@ if ($dead | is-not-empty) and (under $r.at ...$dead) { continue }
 - [Reading `debug profile` directly](references/debug-profile.md): read when `probe hot` and `probe entries` are
   not enough.
 - Don't time with `std bench`: under `nu -l` it reported 962 us for one `each` that a plain timing loop put at
-  55 us (nu 0.115.2-nightly). Use `probe time` (or `timeit` when the closure ends in a `try`).
+  55 us (nu 0.115.2-nightly). Use `probe time` or `timeit`.

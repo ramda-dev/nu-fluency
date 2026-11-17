@@ -4,7 +4,7 @@ version = '3.0.0'
   name   = 'v0.4.0 Stable Close-Out'
   slug   = 'v0-4-0-close-out'
   date   = 2026-07-20
-  status = 'open'
+  status = 'completed'
 
   [issue.vision]
     outcome = 'singular'
@@ -65,7 +65,7 @@ index = 8
   [tasks.1]
     id        = 'verify-and-release'
     target    = 'Stable release shipped from a verified corpus.'
-    completed = false
+    completed = 2026-11-17
     subtasks  = [
       {
         synopsis = 'Run trigger round-trip tests, perf included',
@@ -85,11 +85,11 @@ index = 8
       {
         synopsis = 'Tag and release v0.4.0',
         llm      = 'none',
-        done     = false
+        done     = true
       },
       {
         synopsis = 'Bump both manifests same motion',
         llm      = 'none',
-        done     = false
+        done     = true
       },
     ]

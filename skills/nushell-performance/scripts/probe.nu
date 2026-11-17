@@ -30,6 +30,8 @@ const ALWAYS: list<string> = [
   tee
   interleave
 ]
+# Shown when a timed closure fails: a bound external result raises on a non-zero exit.
+const COMPLETE_HINT = 'if it ends in an external that can exit non-zero, end it in `| complete`'
 const MAYBE: list<string> = [default update upsert insert collect zip 'str replace' group-by sort-by]
 
 # Exact number of closure-command entries one run of `code` makes, by command.
@@ -44,12 +46,21 @@ export def entries [code: closure]: nothing -> record<total: int, by: record, cl
   {total: ($by | values | append 0 | math sum) by: $by closure-or-value: (do $tally $MAYBE)}
 }
 
-# Median milliseconds of one run of `code`.
+# Median milliseconds of one run of `code`. Each run's result is bound (`let _ =`), not piped to `ignore`, so a
+# closure that ends in `try` keeps its catch (try-escapes-under-ignore); a streamed result is therefore collected,
+# which adds 0.1 to 0.2 us per element (nu 0.117.0). `compare` and `calibrate` time the same way. A bound result
+# also raises when the closure ends in an external that exits non-zero, so a first run that fails raises one clear
+# error before timing (in `compare` too); end such a closure in `| complete` to time it anyway.
 export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -> float {
-  do $code | ignore
+  try { let _ = do $code } catch {|e|
+    error make --unspanned {
+      msg: $"the timed closure failed: ($e.msg)"
+      help: $COMPLETE_HINT
+    }
+  }
   1..$passes | each {
     let t = date now
-    for _ in 1..$rounds { do $code | ignore }
+    for _ in 1..$rounds { let _ = do $code }
     ((date now) - $t) / $rounds / 1ms
   } | math median | math round --precision 3
 }
@@ -59,19 +70,19 @@ export def time [code: closure --rounds: int = 100 --passes: int = 5]: nothing -
 # `noise_pct` is the median distance of one pass's gain from the median gain, in points: a `gain_pct` that is
 # not several times clear of it is not a gain.
 export def compare [old: closure new: closure --rounds: int = 100 --passes: int = 5]: nothing -> record {
-  let a = do $old
-  let b = do $new
+  let a = try { do $old } catch {|e| error make --unspanned {msg: $"the old closure failed: ($e.msg)" help: $COMPLETE_HINT} }
+  let b = try { do $new } catch {|e| error make --unspanned {msg: $"the new closure failed: ($e.msg)" help: $COMPLETE_HINT} }
   if $a != $b { error make --unspanned {msg: 'the variants return different values; nothing timed' help: $"old: ($a | to nuon | str substring 0..300)\nnew: ($b | to nuon | str substring 0..300)"} }
-  do $old | ignore; do $new | ignore
+  let _ = do $old; let _ = do $new
   let half: int = [($rounds // 2) 1] | math max
   let runs = 1..$passes | each {
       let t0 = date now
-      for _ in 1..$half { do $old | ignore }
+      for _ in 1..$half { let _ = do $old }
       let t1 = date now
-      for _ in 1..$half { do $new | ignore }
-      for _ in 1..$half { do $new | ignore }
+      for _ in 1..$half { let _ = do $new }
+      for _ in 1..$half { let _ = do $new }
       let t2 = date now
-      for _ in 1..$half { do $old | ignore }
+      for _ in 1..$half { let _ = do $old }
       let t3 = date now
       let first: float = ($t1 - $t0) / $half / 1ms
       let last: float = ($t3 - $t2) / $half / 1ms
@@ -116,9 +127,9 @@ export def hot [code: closure --top: int = 12]: nothing -> record<total: duratio
 # measured on one machine and one nu version: re-run it before trusting the numbers anywhere else.
 export def calibrate [--rounds: int = 3000]: nothing -> table<form: string, us: int> {
   let cost = {|code: closure|
-    do $code | ignore
+    let _ = do $code
     let t = date now
-    for _ in 1..$rounds { do $code | ignore }
+    for _ in 1..$rounds { let _ = do $code }
     ((date now) - $t) / $rounds / 1us | math round
   }
   def f [x: int]: nothing -> int { $x }
